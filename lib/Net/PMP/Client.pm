@@ -151,7 +151,7 @@ American Public Media and the Public Media Platform sponsored the development of
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2013 Public Media Platform.
+Copyright 2013 American Public Media Group
 
 See the LICENSE file that accompanies this module.
 
