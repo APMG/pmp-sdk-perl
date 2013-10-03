@@ -3,8 +3,17 @@ package Net::PMP::Client;
 use strict;
 use warnings;
 use Carp;
+use Data::Dump qw( dump );
 use LWP::UserAgent;
+use HTTP::Request;
+use MIME::Base64;
 use JSON;
+
+use Net::PMP::AuthToken;
+
+use base qw( Rose::ObjectX::CAF );
+
+__PACKAGE__->mk_accessors(qw( host id secret debug ua auth_endpoint ));
 
 our $VERSION = '0.01';
 
@@ -36,6 +45,60 @@ Net::PMP::Client - Perl client for the Public Media Platform
 
  
 =cut
+
+sub init {
+    my $self = shift;
+    $self->SUPER::init(@_);
+
+    # some setup
+    $self->{auth_endpoint} ||= 'auth/access_token';
+    $self->{ua} ||= LWP::UserAgent->new( agent => 'pmp-perl-' . $VERSION );
+    $self->{host} .= '/' unless $self->{host} =~ m/\/$/;
+    $self->{_last_token_ts} = 0;
+
+    $self->get_token();    # initiate connection
+
+    return $self;
+}
+
+sub get_token {
+    my $self = shift;
+    my $refresh = shift || 0;
+
+    # use cache?
+    if ( !$refresh and $self->{_token} ) {
+        my $tok = $self->{_token};
+        if ( $self->{_last_token_ts} ) {
+            $tok->expires_in(
+                $tok->expires_in - ( time() - $self->{_last_token_ts} ) );
+        }
+        $self->{_last_token_ts} = time();
+        return $tok;
+    }
+
+    # fetch new token
+    my $uri     = $self->host . $self->auth_endpoint;
+    my $ua      = $self->ua;
+    my $request = HTTP::Request->new( 'GET' => $uri );
+    my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
+    $request->header( 'Authorization' => 'CLIENT_CREDENTIALS ' . $hash );
+    my $response = $ua->request($request);
+    $self->debug and warn "GET $uri\n" . dump($response);
+
+    if ( $response->code != 200 ) {
+        croak "Invalid response from authn server: " . $response->status_line;
+    }
+
+    # unpack response
+    my $token;
+    eval { $token = decode_json( $response->decoded_content ); };
+    if ($@) {
+        croak "Invalid authn response: " . $response->decoded_content;
+    }
+    $self->{_token}         = Net::PMP::AuthToken->new($token);
+    $self->{_last_token_ts} = time();
+    return $self->{_token};
+}
 
 1;
 
