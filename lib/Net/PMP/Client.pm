@@ -10,6 +10,7 @@ use MIME::Base64;
 use JSON;
 
 use Net::PMP::AuthToken;
+use Net::PMP::CollectionDoc;
 
 use base qw( Rose::ObjectX::CAF );
 
@@ -52,7 +53,8 @@ sub init {
 
     # some setup
     $self->{auth_endpoint} ||= 'auth/access_token';
-    $self->{ua} ||= LWP::UserAgent->new( agent => 'pmp-perl-' . $VERSION );
+    $self->{ua}
+        ||= LWP::UserAgent->new( agent => 'net-pmp-perl-' . $VERSION );
     $self->{host} .= '/' unless $self->{host} =~ m/\/$/;
     $self->{_last_token_ts} = 0;
 
@@ -78,11 +80,10 @@ sub get_token {
 
     # fetch new token
     my $uri     = $self->host . $self->auth_endpoint;
-    my $ua      = $self->ua;
-    my $request = HTTP::Request->new( 'GET' => $uri );
+    my $request = HTTP::Request->new( GET => $uri );
     my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
     $request->header( 'Authorization' => 'CLIENT_CREDENTIALS ' . $hash );
-    my $response = $ua->request($request);
+    my $response = $self->ua->request($request);
     $self->debug and warn "GET $uri\n" . dump($response);
 
     if ( $response->code != 200 ) {
@@ -98,6 +99,67 @@ sub get_token {
     $self->{_token}         = Net::PMP::AuthToken->new($token);
     $self->{_last_token_ts} = time();
     return $self->{_token};
+}
+
+sub revoke_token {
+    my $self    = shift;
+    my $uri     = $self->host . $self->auth_endpoint;
+    my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
+    my $request = HTTP::Request->new( DELETE => $uri );
+    $request->header( 'Authorization' => 'CLIENT_CREDENTIALS ' . $hash );
+    my $response = $self->ua->request($request);
+    $self->debug and warn "DELETE $uri\n" . dump($response);
+    if ( $response->code != 204 ) {
+        croak "Invalid response from authn server: " . $response->status_line;
+    }
+    $self->{_token} = undef;
+    return $self;
+}
+
+sub get {
+    my $self    = shift;
+    my $uri     = shift or croak "uri required";
+    my $request = HTTP::Request->new( GET => $uri );
+    my $token   = $self->get_token();
+    $request->header( 'Content-Type' => 'application/json' );
+    $request->header( 'Authorization' =>
+            sprintf( '%s %s', $token->token_type, $token->access_token ) );
+    my $response = $self->ua->request($request);
+    $self->debug and warn "GET $uri\n" . dump($response);
+
+    # retry if 401
+    if ( $response->code == 401 ) {
+        $token = $self->get_token(1);
+        $request->header( 'Authorization' =>
+                sprintf( '%s %s', $token->token_type, $token->access_token )
+        );
+        $response = $self->ua->request($request);
+        $self->debug and warn "retry GET $uri\n" . dump($response);
+    }
+    if ( $response->code != 200 or !$response->decoded_content ) {
+        croak "Unexpected response for GET $uri: " . $response->status_line;
+    }
+
+    my $json;
+    eval { $json = decode_json( $response->decoded_content ); };
+    if ($@) {
+        croak "Invalid JSON in response: $@ : " . $response->decoded_content;
+    }
+    return $json;
+}
+
+sub get_doc {
+    my $self = shift;
+    my $uri = shift || $self->host;
+
+    my $response = $self->get($uri);
+
+    # convert JSON response into a CollectionDoc
+    $self->debug and warn dump $response;
+
+    my $doc = Net::PMP::CollectionDoc->new($response);
+
+    return $doc;
 }
 
 1;

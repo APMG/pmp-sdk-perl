@@ -13,6 +13,7 @@ WriteMakefile(
     CONFIGURE_REQUIRES => { 'ExtUtils::MakeMaker' => 0, },
     BUILD_REQUIRES     => { 'Test::More' => 0, },
     PREREQ_PM          => {
+        'Mouse'          => 0,
         'Test::More'     => 0,
         'JSON'           => 2.0,
         'LWP::UserAgent' => 0,
