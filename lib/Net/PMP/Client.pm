@@ -82,6 +82,10 @@ Net::PMP::Client is a Perl client for the Public Media Platform API (http://pmp.
 
 =head1 METHODS
 
+=head2 BUILD
+
+Internal method for object construction.
+
 =head2 get_token([I<refresh>])
 
 Returns a Net::PMP::AuthToken object. The optional I<refresh> boolean indicates

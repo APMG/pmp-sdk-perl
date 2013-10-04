@@ -23,6 +23,33 @@ sub query_rel_types {
 
 __END__
 
+=head1 NAME
+
+Net::PMP::CollectionDoc::Links - links from a Net::PMP::CollectionDoc
+
+=head1 SYNOPSIS
+
+ # TODO
+
+=head1 DESCRIPTION
+
+Net::PMP::CollectionDoc::Links represents the links in a Collection.doc+JSON PMP API response.
+
+=head1 METHODS
+
+=head2 links
+
+Returns arrayref of links.
+
+=head2 type
+
+The flavor of the Links object.
+
+=head2 query_rel_types
+
+If B<type> is C<query> then this method can used to return a hashref of rel names
+to titles.
+
 =head1 AUTHOR
 
 Peter Karman, C<< <pkarman at cpan.org> >>

@@ -20,6 +20,50 @@ sub get_links {
 
 __END__
 
+=head1 NAME
+
+Net::PMP::CollectionDoc - Collection.doc+JSON object for Net::PMP::Client
+
+=head1 SYNOPSIS
+
+ my $doc = $pmp_client->get_doc();
+ printf("API version: %s\n", $doc->version);
+ my $query_links = $doc->get_links('query');
+
+=head1 DESCRIPTION
+
+Net::PMP::CollectionDoc represents the PMP API media type L<https://github.com/publicmediaplatform/pmpdocs/wiki/Collection.doc-JSON-Media-Type>.
+
+=head1 METHODS
+
+=head2 get_links( I<type> )
+
+Returns Net::PMP::CollectionDoc::Links object for I<type>, which may be one of:
+
+=over
+
+=item creator
+
+=item edit
+
+=item navigation
+
+=item query
+
+=back
+
+=head2 links
+
+Returns hashref of link data.
+
+=head2 attributes
+
+Returns hashref of attribute data.
+
+=head2 version
+
+Returns API version string.
+
 =head1 AUTHOR
 
 Peter Karman, C<< <pkarman at cpan.org> >>
