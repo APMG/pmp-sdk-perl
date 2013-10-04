@@ -1,22 +1,48 @@
 package Net::PMP::Client;
-
-use strict;
-use warnings;
+use Mouse;
 use Carp;
 use Data::Dump qw( dump );
 use LWP::UserAgent;
 use HTTP::Request;
 use MIME::Base64;
 use JSON;
-
 use Net::PMP::AuthToken;
 use Net::PMP::CollectionDoc;
 
-use base qw( Rose::ObjectX::CAF );
-
-__PACKAGE__->mk_accessors(qw( host id secret debug ua auth_endpoint ));
+use Mouse::Util::TypeConstraints;
+subtype 'LWPUA' => as 'Object' => where { $_->isa('LWP::UserAgent') };
+no Mouse::Util::TypeConstraints;
 
 our $VERSION = '0.01';
+
+has 'host' => (
+    is       => 'rw',
+    isa      => 'Str',
+    required => 1,
+    default  => 'https://api-sandbox.pmp.io/',
+);
+has 'id'     => ( is => 'rw', isa => 'Str',   required => 1, );
+has 'secret' => ( is => 'rw', isa => 'Str',   required => 1, );
+has 'debug'  => ( is => 'rw', isa => 'Bool',  default  => 0, );
+has 'ua'     => ( is => 'rw', isa => 'LWPUA', builder  => '_init_ua', );
+has 'auth_endpoint' =>
+    ( is => 'rw', isa => 'Str', default => 'auth/access_token', );
+
+# some constructor-time setup
+sub BUILD {
+    my $self = shift;
+    $self->{host} .= '/' unless $self->host =~ m/\/$/;
+    $self->{_last_token_ts} = 0;
+    $self->get_token();    # initiate connection
+    return $self;
+}
+
+sub _init_ua {
+    my $self = shift;
+    return LWP::UserAgent->new( agent => 'net-pmp-perl-' . $VERSION );
+}
+
+__PACKAGE__->meta->make_immutable;
 
 =head1 NAME
 
@@ -47,21 +73,18 @@ Net::PMP::Client - Perl client for the Public Media Platform
  
 =cut
 
-sub init {
-    my $self = shift;
-    $self->SUPER::init(@_);
+=head1 DESCRIPTION
 
-    # some setup
-    $self->{auth_endpoint} ||= 'auth/access_token';
-    $self->{ua}
-        ||= LWP::UserAgent->new( agent => 'net-pmp-perl-' . $VERSION );
-    $self->{host} .= '/' unless $self->{host} =~ m/\/$/;
-    $self->{_last_token_ts} = 0;
+Net::PMP::Client is a Perl client for the Public Media Platform API (http://pmp.io/).
 
-    $self->get_token();    # initiate connection
+=head1 METHODS
 
-    return $self;
-}
+=head2 get_token([I<refresh>])
+
+Returns a Net::PMP::AuthToken object. The optional I<refresh> boolean indicates
+that the Client should ignore any cached token and fetch a fresh one.
+
+=cut
 
 sub get_token {
     my $self = shift;
@@ -101,6 +124,12 @@ sub get_token {
     return $self->{_token};
 }
 
+=head2 revoke_token
+
+Expires the currently active AuthToken.
+
+=cut
+
 sub revoke_token {
     my $self    = shift;
     my $uri     = $self->host . $self->auth_endpoint;
@@ -115,6 +144,13 @@ sub revoke_token {
     $self->{_token} = undef;
     return $self;
 }
+
+=head2 get(I<uri>)
+
+Issues a GET request on I<uri> and decodes the JSON response into a Perl
+scalar. Returns the decoded scalar.
+
+=cut
 
 sub get {
     my $self    = shift;
@@ -147,6 +183,13 @@ sub get {
     }
     return $json;
 }
+
+=head2 get_doc([I<uri>]) 
+
+Returns a Net::PMP::CollectionDoc representing I<uri>. Defaults
+to the API base endpoint if I<uri> is omitted.
+
+=cut
 
 sub get_doc {
     my $self = shift;
