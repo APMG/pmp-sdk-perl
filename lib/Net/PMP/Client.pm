@@ -2,7 +2,7 @@ package Net::PMP::Client;
 use Mouse;
 use Carp;
 use Data::Dump qw( dump );
-use LWP::UserAgent;
+use LWP::UserAgent 6;    # SSL verification bug fixed in 6.03
 use HTTP::Request;
 use MIME::Base64;
 use JSON;
@@ -39,7 +39,10 @@ sub BUILD {
 
 sub _init_ua {
     my $self = shift;
-    return LWP::UserAgent->new( agent => 'net-pmp-perl-' . $VERSION );
+    return LWP::UserAgent->new(
+        agent    => 'net-pmp-perl-' . $VERSION,
+        ssl_opts => { verify_hostname => 1 },
+    );
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -165,10 +168,15 @@ sub get {
 
     # retry if 401
     if ( $response->code == 401 ) {
+
+        # occasional persistent 401 errors?
+        #sleep(1);
         $token = $self->get_token(1);
         $request->header( 'Authorization' =>
                 sprintf( '%s %s', $token->token_type, $token->access_token )
         );
+
+        #sleep(1);
         $response = $self->ua->request($request);
         $self->debug and warn "retry GET $uri\n" . dump($response);
     }
