@@ -5,6 +5,7 @@ Build.bat
 META.*
 MYMETA.*
 *.swp
+*.bak
 .build/
 _build/
 cover_db/
