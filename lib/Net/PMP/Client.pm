@@ -88,7 +88,7 @@ Net::PMP::Client - Perl client for the Public Media Platform
 
 =head1 DESCRIPTION
 
-Net::PMP::Client is a Perl client for the Public Media Platform API (http://pmp.io/).
+Net::PMP::Client is a Perl client for the Public Media Platform API (http://docs.pmp.io/).
 
 =head1 METHODS
 
