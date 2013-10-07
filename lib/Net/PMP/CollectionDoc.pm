@@ -3,17 +3,47 @@ use Mouse;
 use Carp;
 use Data::Dump qw( dump );
 use Net::PMP::CollectionDoc::Links;
+use Net::PMP::CollectionDoc::Items;
 
-has 'links'      => ( is => 'ro', isa => 'HashRef', required => 1, );
-has 'attributes' => ( is => 'ro', isa => 'HashRef', required => 1, );
-has 'version'    => ( is => 'ro', isa => 'Str',     required => 1, );
+has 'links'      => ( is => 'ro', isa => 'HashRef',  required => 1, );
+has 'attributes' => ( is => 'ro', isa => 'HashRef',  required => 1, );
+has 'version'    => ( is => 'ro', isa => 'Str',      required => 1, );
+has 'items'      => ( is => 'ro', isa => 'ArrayRef', required => 0, );
 
 sub get_links {
     my $self  = shift;
     my $type  = shift or croak "type required";
     my $links = $self->links->{$type} or croak "No such type $type";
-    return Net::PMP::CollectionDoc::Links->new( type => $type,
-        links => $links );
+    return Net::PMP::CollectionDoc::Links->new(
+        type  => $type,
+        links => $links
+    );
+}
+
+sub get_items {
+    my $self = shift;
+    if ( !$self->items ) {
+        croak "No items defined for CollectionDoc";
+    }
+    my $navlinks = $self->get_links('navigation');
+    my $navself  = $navlinks->rels('urn:pmp:navigation:self')->[0];
+    my $total    = $navself->totalitems;
+    return Net::PMP::CollectionDoc::Items->new(
+        items    => $self->items,
+        navlinks => $navlinks,
+        total    => $total,
+    );
+}
+
+sub query {
+    my $self        = shift;
+    my $urn         = shift or croak "URN required";
+    my $query_links = $self->get_links('query');
+    my $rels        = $query_links->rels($urn);
+    if (@$rels) {
+        return $rels->[0];    # first link found
+    }
+    return undef;
 }
 
 1;

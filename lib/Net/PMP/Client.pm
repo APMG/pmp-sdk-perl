@@ -73,6 +73,16 @@ Net::PMP::Client - Perl client for the Public Media Platform
  }
  printf("PMP token is: %s\n, $token->as_string());
 
+ # search
+ my $search_results = $client->search(
+     $doc->query('urn:pmp:query:docs')
+       ->as_uri( { tag => 'samplecontent', profile => 'story' } ) 
+ );  
+ my $results = $search_results->get_items();
+ printf( "total: %s\n", $results->total );
+ while ( my $r = $results->next ) { 
+     printf( '%s: %s [%s]', $results->count, $r->uri, $r->title, ) );
+ }   
  
 =cut
 
@@ -174,7 +184,7 @@ sub get {
     if ( $response->code == 401 ) {
 
         # occasional persistent 401 errors?
-        #sleep(1);
+        sleep(1);
         $token = $self->get_token(1);
         $request->header( 'Authorization' =>
                 sprintf( '%s %s', $token->token_type, $token->access_token )
@@ -215,6 +225,18 @@ sub get_doc {
     my $doc = Net::PMP::CollectionDoc->new($response);
 
     return $doc;
+}
+
+=head2 search( I<uri> )
+
+Returns a Net::PMP::CollectionDoc object for I<uri>.
+
+=cut
+
+sub search {
+    my $self = shift;
+    my $uri = shift or croak "uri required";
+    return $self->get_doc($uri);
 }
 
 1;

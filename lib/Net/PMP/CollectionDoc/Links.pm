@@ -2,9 +2,40 @@ package Net::PMP::CollectionDoc::Links;
 use Mouse;
 use Carp;
 use Data::Dump qw( dump );
+use Net::PMP::CollectionDoc::Link;
 
-has 'links' => ( is => 'rw', isa => 'ArrayRef', required => 1, );
-has 'type'  => ( is => 'rw', isa => 'Str',      required => 1, );
+has 'links' => (
+    is       => 'rw',
+    isa      => 'ArrayRef',
+    required => 1,
+    trigger  => \&_bless_links
+);
+has 'type' => ( is => 'rw', isa => 'Str', required => 1, );
+
+__PACKAGE__->meta->make_immutable();
+
+sub _bless_links {
+    my ( $self, $links ) = @_;
+    for my $link (@$links) {
+        next if blessed $link;
+        my %h = ( rels => $link->{rels}, );
+        for my $opt (
+            qw( hints href method type title pagenum totalitems totalpages ))
+        {
+            if ( $link->{$opt} ) {
+                $h{$opt} = $link->{$opt};
+            }
+        }
+        if ( $link->{'href-vars'} ) {
+            $h{vars} = $link->{'href-vars'};
+        }
+        if ( $link->{'href-template'} ) {
+            $h{template} = $link->{'href-template'};
+        }
+        $link = Net::PMP::CollectionDoc::Link->new(%h);
+    }
+    return $links;
+}
 
 sub query_rel_types {
     my $self = shift;
@@ -17,6 +48,22 @@ sub query_rel_types {
         $t{ $link->{rels}->[0] } = $link->{title};
     }
     return \%t;
+}
+
+sub rels {
+    my $self = shift;
+    my @urns = @_;
+    my @links;
+    for my $urn (@urns) {
+        for my $link ( @{ $self->links } ) {
+            for my $rel ( @{ $link->rels } ) {
+                if ( $rel eq $urn ) {
+                    push @links, $link;
+                }
+            }
+        }
+    }
+    return \@links;
 }
 
 1;

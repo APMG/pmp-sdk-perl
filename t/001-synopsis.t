@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 44;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Client');
@@ -9,8 +9,10 @@ use_ok('Net::PMP::CollectionDoc');
 
 SKIP: {
     if ( !$ENV{PMP_CLIENT_ID} or !$ENV{PMP_CLIENT_SECRET} ) {
-        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 7;
+        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 42;
     }
+
+    # basic authn
 
     ok( my $client = Net::PMP::Client->new(
             host   => 'https://api-sandbox.pmp.io',
@@ -26,6 +28,8 @@ SKIP: {
     cmp_ok( $token->expires_in, '>=', 10, 'token expires_in >= 10' );
 
     ok( $client->revoke_token(), "revoke_token" );
+
+    # introspection
 
     ok( my $doc = $client->get_doc(), "client->get_doc()" );
 
@@ -47,5 +51,67 @@ SKIP: {
         },
         "got expected rel types"
     );
+
+    ok( my $query_options = $doc->query('urn:pmp:query:docs')->options(),
+        "query->options" );
+
+    #diag( dump $query_options );
+
+    is_deeply(
+        $query_options,
+        {   author =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            collection =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            distributor =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            distributorgroup =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            enddate =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            has =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            language =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            limit =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            offset =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            profile =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            searchsort =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            startdate =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            tag =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            text =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+        },
+        "got expected query options"
+    );
+
+    # sample content
+
+    ok( my $search_results = $client->search(
+            $doc->query('urn:pmp:query:docs')
+                ->as_uri( { tag => 'samplecontent', profile => 'story' } )
+        ),
+        "submit search"
+    );
+    ok( my $results = $search_results->get_items(),
+        "get search_results->get_items()"
+    );
+    cmp_ok( $results->total, '>=', 10, ">= 10 results" );
+    diag( 'total: ' . $results->total );
+    while ( my $r = $results->next ) {
+
+        #diag( dump $r );
+        diag(
+            sprintf( '%s: %s [%s]', $results->count, $r->uri, $r->title, ) );
+        ok( $r->uri,     "get uri" );
+        ok( $r->title,   "get title" );
+        ok( $r->profile, "get profile" );
+    }
 
 }

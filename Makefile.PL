@@ -18,6 +18,7 @@ WriteMakefile(
         'JSON'           => 2.0,
         'LWP::UserAgent' => 0,
         'Data::Dump'     => 0,
+        'URI::Template'  => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES    => 'Net-PMP-Client-*' },
