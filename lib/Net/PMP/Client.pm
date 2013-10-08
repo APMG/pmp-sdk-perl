@@ -213,6 +213,8 @@ sub get {
         $response = $self->ua->request($request);
         $self->debug and warn "retry GET $uri\n" . dump($response);
     }
+
+    # TODO should we croak on non-200? what about 404?
     if ( $response->code != 200 or !$response->decoded_content ) {
         croak "Unexpected response for GET $uri: " . $response->status_line;
     }
@@ -225,14 +227,26 @@ sub get {
     return $json;
 }
 
-sub get_base_doc_uri {
+=head2 get_base_publish_uri
+
+Returns the root URI for publishing documents.
+
+=cut
+
+sub get_base_publish_uri {
     my $self = shift;
     return $self->{_base_doc_uri} if $self->{_base_doc_uri};
     $self->_set_base_doc_config();
     return $self->{_base_doc_uri};
 }
 
-sub get_base_doc_edit_method {
+=head2 get_base_publish_method
+
+Returns the HTTP method to used for publishing documents.
+
+=cut
+
+sub get_base_publish_method {
     my $self = shift;
     return $self->{_base_doc_edit_method} if $self->{_base_doc_edit_method};
     $self->_set_base_doc_config();
@@ -247,15 +261,25 @@ sub _set_base_doc_config {
     $self->{_base_doc_edit_method} = $edit_links->links->[0]->method;
 }
 
+=head2 put(I<doc_object>)
+
+Write I<doc_object> to the server. I<doc_object> should be an instance
+of L<Net::PMP::CollectionDoc>.
+
+Returns the JSON response from the server.
+Normally you should use save() instead of put() directly.
+
+=cut
+
 sub put {
     my $self = shift;
     my $doc = shift or croak "doc required";
     if ( !blessed $doc or !$doc->isa('Net::PMP::CollectionDoc') ) {
         croak "doc must be a Net::PMP::CollectionDoc object";
     }
-    my $edit_method = $self->get_base_doc_edit_method();
-    my $uri         = $doc->get_uri()
-        || ( $self->get_base_doc_uri() . '/'
+    my $edit_method = $self->get_base_publish_method();
+    my $uri         = $doc->get_publish_uri()
+        || ( $self->get_publish_uri() . '/'
         . ( $doc->get_guid() || $doc->create_guid() ) );
 
     my $request = HTTP::Request->new( $edit_method => $uri );
@@ -326,6 +350,14 @@ sub search {
     my $uri = shift or croak "uri required";
     return $self->get_doc($uri);
 }
+
+=head2 save(I<doc_object>)
+
+Write I<doc_object> to the server. Returns the I<doc_object>
+with its URI updated to reflect the server response. Wraps
+put() internally.
+
+=cut
 
 sub save {
     my $self = shift;
