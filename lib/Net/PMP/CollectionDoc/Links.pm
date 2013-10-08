@@ -98,6 +98,10 @@ The flavor of the Links object.
 If B<type> is C<query> then this method can used to return a hashref of rel names
 to titles.
 
+=head2 rels(I<urn>[, ...I<urn>])
+
+Returns arrayref of links that match I<urn>.
+
 =head1 AUTHOR
 
 Peter Karman, C<< <pkarman at cpan.org> >>

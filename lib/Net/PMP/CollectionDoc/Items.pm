@@ -53,6 +53,18 @@ Net::PMP::CollectionDoc::Items - items from a Net::PMP::CollectionDoc
 
 Returns object as an array.
 
+=head2 next
+
+Standard iterator method. Returns the next L<Net::PMP::CollectionDoc::Item> from the stack.
+
+=head2 count
+
+Returns integer indidating the number of Items returned so far via next().
+
+=head2 reset
+
+Re-initialize the iterator.
+
 =head1 AUTHOR
 
 Peter Karman, C<< <pkarman at cpan.org> >>
