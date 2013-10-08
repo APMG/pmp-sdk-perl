@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 50;
+use Test::More tests => 55;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Client');
@@ -9,7 +9,7 @@ use_ok('Net::PMP::CollectionDoc');
 
 SKIP: {
     if ( !$ENV{PMP_CLIENT_ID} or !$ENV{PMP_CLIENT_SECRET} ) {
-        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 48;
+        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 53;
     }
 
     # basic authn
@@ -109,10 +109,12 @@ SKIP: {
 
         #diag( dump $r );
         diag(
-            sprintf( '%s: %s [%s]', $results->count, $r->uri, $r->title, ) );
-        ok( $r->uri,     "get uri" );
-        ok( $r->title,   "get title" );
-        ok( $r->profile, "get profile" );
+            sprintf( '%s: %s [%s]',
+                $results->count, $r->get_uri, $r->get_title, )
+        );
+        ok( $r->get_uri,     "get uri" );
+        ok( $r->get_title,   "get title" );
+        ok( $r->get_profile, "get profile" );
     }
 
     ############################################################################
@@ -153,6 +155,16 @@ SKIP: {
     );
 
     # Update TODO
+    $sample_doc->attributes->{title} = 'i am a test document, redux';
+    ok( $client->save($sample_doc), "update title" );
+    ok( $search_results = $client->get_doc( $sample_doc->get_uri ),
+        "re-fetch sample doc" );
+    is( $search_results->get_title,
+        $sample_doc->get_title, "search results title == sample doc title" );
 
     # Delete TODO
+    ok( $client->delete($sample_doc), "delete sample doc" );
+    ok( !$client->get_doc( $sample_doc->get_uri ),
+        "get_doc() for sample now empty"
+    );
 }

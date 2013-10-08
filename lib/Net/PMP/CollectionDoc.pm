@@ -116,6 +116,28 @@ sub query {
     return undef;
 }
 
+=head2 get_title
+
+Returns C<title> attribute value.
+
+=cut
+
+sub get_title {
+    my $self = shift;
+    return $self->attributes->{title};
+}
+
+=head2 get_profile
+
+Returns first C<profile> link C<href> value.
+
+=cut
+
+sub get_profile {
+    my $self = shift;
+    return $self->links->{profile}->[0]->{href};
+}
+
 =head2 get_uri
 
 Returns the C<href> string from the C<navigation> link
@@ -130,6 +152,24 @@ sub get_uri {
         and $self->links->{navigation}->[0] )
     {
         return $self->links->{navigation}->[0]->{href};
+    }
+    return '';    # TODO??
+}
+
+=head2 get_publish_uri
+
+Returns the C<href> string from the C<edit> link
+representing this CollectionDoc.
+
+=cut
+
+sub get_publish_uri {
+    my $self = shift;
+    if (    $self->links
+        and $self->links->{edit}
+        and $self->links->{edit}->[0] )
+    {
+        return $self->links->{edit}->[0]->{href};
     }
     return '';    # TODO??
 }
@@ -181,9 +221,10 @@ sub create_guid {
     }
 }
 
-=head2 set_guid(<Iguid>)
+=head2 set_guid([<Iguid>])
 
-Sets the guid attribute to I<guid>.
+Sets the guid attribute to I<guid>. If I<guid> is omitted,
+the return value of create_guid() is used.
 
 =cut
 
@@ -196,17 +237,21 @@ sub set_guid {
 
 =head2 as_json
 
-Returns the CollectionDoc as a JSON-encoded string.
+Returns the CollectionDoc as a JSON-encoded string suitable for saving.
 
 =cut
 
 sub as_json {
     my $self = shift;
     my %hash;
-    for my $m (qw( version attributes links )) {  # TODO items?
+    for my $m (qw( version attributes )) {    # TODO items?
         next if !defined $self->$m;
         $hash{$m} = $self->$m;
     }
+
+    # only one link allowed
+    $hash{links}->{profile} = $self->links->{profile};
+
     return encode_json( \%hash );
 }
 
