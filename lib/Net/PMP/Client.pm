@@ -39,10 +39,23 @@ sub BUILD {
 
 sub _init_ua {
     my $self = shift;
-    return LWP::UserAgent->new(
+    my $ua   = LWP::UserAgent->new(
         agent    => 'net-pmp-perl-' . $VERSION,
         ssl_opts => { verify_hostname => 1 },
     );
+
+# if Compress::Zlib is installed, this should handle gzip transparently.
+# thanks to
+# http://stackoverflow.com/questions/1285305/how-can-i-accept-gzip-compressed-content-using-lwpuseragent
+    my $can_accept = HTTP::Message::decodable();
+    $ua->default_header( 'Accept-Encoding' => $can_accept );
+
+    if ( $self->debug ) {
+        $ua->add_handler( "request_send",  sub { shift->dump; return } );
+        $ua->add_handler( "response_done", sub { shift->dump; return } );
+    }
+
+    return $ua;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -124,7 +137,6 @@ sub get_token {
     my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
     $request->header( 'Authorization' => 'CLIENT_CREDENTIALS ' . $hash );
     my $response = $self->ua->request($request);
-    $self->debug and warn "GET $uri\n" . dump($response);
 
     if ( $response->code != 200 ) {
         croak "Invalid response from authn server: " . $response->status_line;
@@ -154,7 +166,7 @@ sub revoke_token {
     my $request = HTTP::Request->new( DELETE => $uri );
     $request->header( 'Authorization' => 'CLIENT_CREDENTIALS ' . $hash );
     my $response = $self->ua->request($request);
-    $self->debug and warn "DELETE $uri\n" . dump($response);
+
     if ( $response->code != 204 ) {
         croak "Invalid response from authn server: " . $response->status_line;
     }
@@ -178,7 +190,6 @@ sub get {
     $request->header( 'Authorization' =>
             sprintf( '%s %s', $token->token_type, $token->access_token ) );
     my $response = $self->ua->request($request);
-    $self->debug and warn "GET $uri\n" . dump($response);
 
     # retry if 401
     if ( $response->code == 401 ) {
@@ -196,6 +207,78 @@ sub get {
     }
     if ( $response->code != 200 or !$response->decoded_content ) {
         croak "Unexpected response for GET $uri: " . $response->status_line;
+    }
+
+    my $json;
+    eval { $json = decode_json( $response->decoded_content ); };
+    if ($@) {
+        croak "Invalid JSON in response: $@ : " . $response->decoded_content;
+    }
+    return $json;
+}
+
+sub get_base_doc_uri {
+    my $self = shift;
+    return $self->{_base_doc_uri} if $self->{_base_doc_uri};
+    $self->_set_base_doc_config();
+    return $self->{_base_doc_uri};
+}
+
+sub get_base_doc_edit_method {
+    my $self = shift;
+    return $self->{_base_doc_edit_method} if $self->{_base_doc_edit_method};
+    $self->_set_base_doc_config();
+    return $self->{_base_doc_edit_method};
+}
+
+sub _set_base_doc_config {
+    my $self       = shift;
+    my $api_doc    = $self->get_doc();
+    my $edit_links = $api_doc->get_links('edit');
+    $self->{_base_doc_uri}         = $edit_links->links->[0]->href;
+    $self->{_base_doc_edit_method} = $edit_links->links->[0]->method;
+}
+
+sub put {
+    my $self = shift;
+    my $doc = shift or croak "doc required";
+    if ( !blessed $doc or !$doc->isa('Net::PMP::CollectionDoc') ) {
+        croak "doc must be a Net::PMP::CollectionDoc object";
+    }
+    my $edit_method = $self->get_base_doc_edit_method();
+    my $uri         = $doc->get_uri()
+        || ( $self->get_base_doc_uri() . '/'
+        . ( $doc->get_guid() || $doc->create_guid() ) );
+
+    my $request = HTTP::Request->new( $edit_method => $uri );
+    my $token = $self->get_token();
+    $request->header(
+        # pmp docs claim it should be application/json or the pmp type
+        # but those cause 400 bad request response with validation error.
+        'Content-Type' => 'application/x-www-form-urlencoded' );
+        #'Content-Type' => 'application/vnd.pmp.collection.doc+json' );
+    $request->header( 'Authorization' =>
+            sprintf( '%s %s', $token->token_type, $token->access_token ) );
+    $request->content( $doc->as_json() );
+    my $response = $self->ua->request($request);
+
+    # retry if 401
+    if ( $response->code == 401 ) {
+
+        # occasional persistent 401 errors?
+        sleep(1);
+        $token = $self->get_token(1);
+        $request->header( 'Authorization' =>
+                sprintf( '%s %s', $token->token_type, $token->access_token )
+        );
+
+        #sleep(1);
+        $response = $self->ua->request($request);
+        $self->debug and warn "retry $edit_method $uri\n" . dump($response);
+    }
+    if ( $response->code !~ m/^20[02]$/ or !$response->decoded_content ) {
+        croak sprintf( "Unexpected response for %s %s: %s\n%s\n",
+            $edit_method, $uri, $response->status_line, $response->content );
     }
 
     my $json;
@@ -237,6 +320,25 @@ sub search {
     my $self = shift;
     my $uri = shift or croak "uri required";
     return $self->get_doc($uri);
+}
+
+sub save {
+    my $self = shift;
+    my $doc = shift or croak "doc object required";
+    if ( !blessed $doc or !$doc->isa('Net::PMP::CollectionDoc') ) {
+        croak "doc must be a Net::PMP::CollectionDoc object";
+    }
+
+    # if $doc has no guid (necessary for PUT) create one
+    if ( !$doc->get_guid ) {
+        $doc->set_guid();
+    }
+    my $saved = $self->put($doc);
+    $self->debug and warn dump $saved;
+
+    $doc->set_uri( $saved->{url} );
+
+    return $doc;
 }
 
 1;

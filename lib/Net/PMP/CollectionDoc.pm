@@ -4,6 +4,8 @@ use Carp;
 use Data::Dump qw( dump );
 use Net::PMP::CollectionDoc::Links;
 use Net::PMP::CollectionDoc::Items;
+use UUID::Tiny ':std';
+use JSON;
 
 has 'links'      => ( is => 'ro', isa => 'HashRef',  required => 1, );
 has 'attributes' => ( is => 'ro', isa => 'HashRef',  required => 1, );
@@ -44,6 +46,59 @@ sub query {
         return $rels->[0];    # first link found
     }
     return undef;
+}
+
+sub get_uri {
+    my $self = shift;
+    if (    $self->links
+        and $self->links->{navigation}
+        and $self->links->{navigation}->[0] )
+    {
+        return $self->links->{navigation}->[0]->{href};
+    }
+    return '';    # TODO??
+}
+
+sub set_uri {
+    my $self = shift;
+    my $uri = shift or croak "uri required";
+    $self->links->{navigation}->[0]->{href} = $uri;
+}
+
+sub get_guid {
+    my $self = shift;
+    if ( $self->attributes and $self->attributes->{guid} ) {
+        return $self->attributes->{guid};
+    }
+    return undef;
+}
+
+sub create_guid {
+    my $self = shift;
+    my $use_remote = shift || 0;
+    if ($use_remote) {
+
+        # TODO use PMP API to create a GUID
+    }
+    else {
+        return lc( create_uuid_as_string(UUID_V4) );
+    }
+}
+
+sub set_guid {
+    my $self = shift;
+    my $guid = shift || $self->create_guid();
+    $self->attributes->{guid} = $guid;
+    return $guid;
+}
+
+sub as_json {
+    my $self = shift;
+    my %hash;
+    for my $m (qw( version attributes links items )) {
+        $hash{$m} = $self->$m;
+    }
+    return encode_json( \%hash );
 }
 
 1;

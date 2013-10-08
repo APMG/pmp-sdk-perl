@@ -18,9 +18,10 @@ sub _bless_links {
     my ( $self, $links ) = @_;
     for my $link (@$links) {
         next if blessed $link;
-        my %h = ( rels => $link->{rels}, );
+        my %h = ();
         for my $opt (
-            qw( hints href method type title pagenum totalitems totalpages ))
+            qw( hints href method type title pagenum totalitems totalpages rels )
+            )
         {
             if ( $link->{$opt} ) {
                 $h{$opt} = $link->{$opt};

@@ -91,7 +91,8 @@ SKIP: {
         "got expected query options"
     );
 
-    # sample content
+    ############################################################################
+    # search sample content
 
     ok( my $search_results = $client->search(
             $doc->query('urn:pmp:query:docs')
@@ -114,4 +115,46 @@ SKIP: {
         ok( $r->profile, "get profile" );
     }
 
+    ############################################################################
+    # CRUD
+
+    ok( my $sample_doc = Net::PMP::CollectionDoc->new(
+            version    => '1.0',
+            attributes => {
+                tags  => [qw( pmp-sdk-testcontent )],
+                title => 'i am a test document',
+                #guid  => '5890510b-f237-3714-9f51-36ceafd8bbb7',
+            },
+            links => {
+                profile => [ { href => $client->host . 'profiles/story' } ]
+            },
+        ),
+        "create new sample doc"
+    );
+
+    # Create
+    ok( $client->save($sample_doc), "save sample doc" );
+    ok( $sample_doc->get_uri(),     "saved sample doc has uri" );
+    ok( $sample_doc->get_guid(),    "saved sample doc has guid" );
+
+    sleep(10);  # since create is 202 ...
+
+    # Read
+    ok( $search_results = $client->search(
+            $doc->query('urn:pmp:hreftpl:docs')
+                ->as_uri( { guid => $sample_doc->get_guid() } )
+        ),
+        "search for sample doc"
+    );
+    ok( $results = $search_results->get_items(),
+        "sample doc search results" );
+    is( $results->total, 1, "one result" );
+    is( $results->next->get_uri(),
+        $sample_doc->get_uri(),
+        "search results uri == sample doc uri"
+    );
+
+    # Update TODO
+
+    # Delete TODO
 }
