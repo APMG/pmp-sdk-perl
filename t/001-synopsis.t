@@ -138,7 +138,7 @@ SKIP: {
     ok( $sample_doc->get_uri(),     "saved sample doc has uri" );
     ok( $sample_doc->get_guid(),    "saved sample doc has guid" );
 
-    sleep(10);    # since create is 202 ...
+    sleep(5);    # since create is 202 ...
 
     # Read
     ok( $search_results = $client->search(
