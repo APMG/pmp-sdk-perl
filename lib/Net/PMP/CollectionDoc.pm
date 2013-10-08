@@ -96,6 +96,7 @@ sub as_json {
     my $self = shift;
     my %hash;
     for my $m (qw( version attributes links items )) {
+        next if !defined $self->$m;
         $hash{$m} = $self->$m;
     }
     return encode_json( \%hash );

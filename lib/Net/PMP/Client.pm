@@ -253,10 +253,7 @@ sub put {
     my $request = HTTP::Request->new( $edit_method => $uri );
     my $token = $self->get_token();
     $request->header(
-        # pmp docs claim it should be application/json or the pmp type
-        # but those cause 400 bad request response with validation error.
-        'Content-Type' => 'application/x-www-form-urlencoded' );
-        #'Content-Type' => 'application/vnd.pmp.collection.doc+json' );
+        'Content-Type' => 'application/vnd.pmp.collection.doc+json' );
     $request->header( 'Authorization' =>
             sprintf( '%s %s', $token->token_type, $token->access_token ) );
     $request->content( $doc->as_json() );

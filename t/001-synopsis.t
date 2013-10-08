@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 44;
+use Test::More tests => 50;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Client');
@@ -9,7 +9,7 @@ use_ok('Net::PMP::CollectionDoc');
 
 SKIP: {
     if ( !$ENV{PMP_CLIENT_ID} or !$ENV{PMP_CLIENT_SECRET} ) {
-        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 42;
+        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 48;
     }
 
     # basic authn
@@ -123,6 +123,7 @@ SKIP: {
             attributes => {
                 tags  => [qw( pmp-sdk-testcontent )],
                 title => 'i am a test document',
+
                 #guid  => '5890510b-f237-3714-9f51-36ceafd8bbb7',
             },
             links => {
@@ -137,7 +138,7 @@ SKIP: {
     ok( $sample_doc->get_uri(),     "saved sample doc has uri" );
     ok( $sample_doc->get_guid(),    "saved sample doc has guid" );
 
-    sleep(10);  # since create is 202 ...
+    sleep(10);    # since create is 202 ...
 
     # Read
     ok( $search_results = $client->search(
@@ -146,12 +147,9 @@ SKIP: {
         ),
         "search for sample doc"
     );
-    ok( $results = $search_results->get_items(),
-        "sample doc search results" );
-    is( $results->total, 1, "one result" );
-    is( $results->next->get_uri(),
-        $sample_doc->get_uri(),
-        "search results uri == sample doc uri"
+    is( $search_results->get_guid(),
+        $sample_doc->get_guid(),
+        "search results guid == sample doc guid"
     );
 
     # Update TODO
