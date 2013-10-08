@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 55;
+use Test::More tests => 59;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Client');
@@ -9,7 +9,7 @@ use_ok('Net::PMP::CollectionDoc');
 
 SKIP: {
     if ( !$ENV{PMP_CLIENT_ID} or !$ENV{PMP_CLIENT_SECRET} ) {
-        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 53;
+        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 57;
     }
 
     # basic authn
@@ -137,10 +137,10 @@ SKIP: {
 
     # Create
     ok( $client->save($sample_doc), "save sample doc" );
-    ok( $sample_doc->get_uri(),     "saved sample doc has uri" );
-    ok( $sample_doc->get_guid(),    "saved sample doc has guid" );
-
-    sleep(5);    # since create is 202 ...
+    is( $client->last_response->code, 202, "save response was 202" );
+    ok( $sample_doc->get_uri(),  "saved sample doc has uri" );
+    ok( $sample_doc->get_guid(), "saved sample doc has guid" );
+    sleep(3);    # since create is 202 ...
 
     # Read
     ok( $search_results = $client->search(
@@ -149,21 +149,26 @@ SKIP: {
         ),
         "search for sample doc"
     );
+    is( $client->last_response->code, 200, 'search response was 200' );
     is( $search_results->get_guid(),
         $sample_doc->get_guid(),
         "search results guid == sample doc guid"
     );
 
-    # Update TODO
+    # Update
     $sample_doc->attributes->{title} = 'i am a test document, redux';
     ok( $client->save($sample_doc), "update title" );
+    is( $client->last_response->code, 202, "save response was 202" );
+    sleep(3);    # since update is 202
     ok( $search_results = $client->get_doc( $sample_doc->get_uri ),
         "re-fetch sample doc" );
     is( $search_results->get_title,
         $sample_doc->get_title, "search results title == sample doc title" );
 
-    # Delete TODO
+    # Delete
     ok( $client->delete($sample_doc), "delete sample doc" );
+    is( $client->last_response->code, 202, "delete response was 202" );
+    sleep(3);    # since delete is 202
     ok( !$client->get_doc( $sample_doc->get_uri ),
         "get_doc() for sample now empty"
     );

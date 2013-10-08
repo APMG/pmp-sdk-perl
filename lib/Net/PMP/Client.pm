@@ -9,10 +9,6 @@ use JSON;
 use Net::PMP::AuthToken;
 use Net::PMP::CollectionDoc;
 
-use Mouse::Util::TypeConstraints;
-subtype 'LWPUA' => as 'Object' => where { $_->isa('LWP::UserAgent') };
-no Mouse::Util::TypeConstraints;
-
 our $VERSION = '0.01';
 
 has 'host' => (
@@ -21,10 +17,10 @@ has 'host' => (
     required => 1,
     default  => 'https://api-sandbox.pmp.io/',
 );
-has 'id'     => ( is => 'rw', isa => 'Str',   required => 1, );
-has 'secret' => ( is => 'rw', isa => 'Str',   required => 1, );
-has 'debug'  => ( is => 'rw', isa => 'Bool',  default  => 0, );
-has 'ua'     => ( is => 'rw', isa => 'LWPUA', builder  => '_init_ua', );
+has 'id'     => ( is => 'rw', isa => 'Str',  required => 1, );
+has 'secret' => ( is => 'rw', isa => 'Str',  required => 1, );
+has 'debug'  => ( is => 'rw', isa => 'Bool', default  => 0, );
+has 'ua' => ( is => 'rw', isa => 'LWP::UserAgent', builder => '_init_ua', );
 has 'auth_endpoint' =>
     ( is => 'rw', isa => 'Str', default => 'auth/access_token', );
 has 'pmp_content_type' => (
@@ -32,6 +28,7 @@ has 'pmp_content_type' => (
     isa     => 'Str',
     default => 'application/vnd.pmp.collection.doc+json',
 );
+has 'last_response' => ( is => 'rw', isa => 'HTTP::Response', );
 
 # some constructor-time setup
 sub BUILD {
@@ -149,6 +146,8 @@ sub get_token {
         croak "Invalid response from authn server: " . $response->status_line;
     }
 
+    $self->last_response($response);
+
     # unpack response
     my $token;
     eval { $token = decode_json( $response->decoded_content ); };
@@ -184,7 +183,13 @@ sub revoke_token {
 =head2 get(I<uri>)
 
 Issues a GET request on I<uri> and decodes the JSON response into a Perl
-scalar. Returns the decoded scalar.
+scalar.
+
+If the GET request returns a 404 (Not Found) will return 0 (zero).
+
+If the GET request returns anything other than 200, will croak.
+
+If the GET request returns 200, will return the JSON response, decoded.
 
 =cut
 
@@ -193,8 +198,8 @@ sub get {
     my $uri     = shift or croak "uri required";
     my $request = HTTP::Request->new( GET => $uri );
     my $token   = $self->get_token();
-    $request->header( 'Accept'       => $self->pmp_content_type, );
-    $request->header( 'Content-Type' => $self->pmp_content_type, );
+    $request->header(
+        'Accept' => 'application/json; ' . $self->pmp_content_type, );
     $request->header( 'Authorization' =>
             sprintf( '%s %s', $token->token_type, $token->access_token ) );
     my $response = $self->ua->request($request);
@@ -214,7 +219,12 @@ sub get {
         $self->debug and warn "retry GET $uri\n" . dump($response);
     }
 
-    # TODO should we croak on non-200? what about 404?
+    $self->last_response($response);
+
+    if ( $response->code == 404 ) {
+        return 0;
+    }
+
     if ( $response->code != 200 or !$response->decoded_content ) {
         croak "Unexpected response for GET $uri: " . $response->status_line;
     }
@@ -266,7 +276,7 @@ sub _set_base_doc_config {
 Write I<doc_object> to the server. I<doc_object> should be an instance
 of L<Net::PMP::CollectionDoc>.
 
-Returns the JSON response from the server.
+Returns the JSON response from the server on success, croaks on failure.
 Normally you should use save() instead of put() directly.
 
 =cut
@@ -279,7 +289,7 @@ sub put {
     }
     my $edit_method = $self->get_base_publish_method();
     my $uri         = $doc->get_publish_uri()
-        || ( $self->get_publish_uri() . '/'
+        || ( $self->get_base_publish_uri() . '/'
         . ( $doc->get_guid() || $doc->create_guid() ) );
 
     my $request = HTTP::Request->new( $edit_method => $uri );
@@ -305,6 +315,9 @@ sub put {
         $response = $self->ua->request($request);
         $self->debug and warn "retry $edit_method $uri\n" . dump($response);
     }
+
+    $self->last_response($response);
+
     if ( $response->code !~ m/^20[02]$/ or !$response->decoded_content ) {
         croak sprintf( "Unexpected response for %s %s: %s\n%s\n",
             $edit_method, $uri, $response->status_line, $response->content );
@@ -318,10 +331,59 @@ sub put {
     return $json;
 }
 
+=head2 delete(I<doc_object>)
+
+Remove I<doc_object> from the server. Returns true on success, croaks on failure.
+
+=cut
+
+sub delete {
+    my $self = shift;
+    my $doc = shift or croak "doc required";
+    if ( !blessed $doc or !$doc->isa('Net::PMP::CollectionDoc') ) {
+        croak "doc must be a Net::PMP::CollectionDoc object";
+    }
+    my $uri = $doc->get_publish_uri()
+        || ( $self->get_base_publish_uri() . '/'
+        . ( $doc->get_guid() || $doc->create_guid() ) );
+
+    my $request = HTTP::Request->new( DELETE => $uri );
+    my $token = $self->get_token();
+    $request->header( 'Accept'       => 'application/json' );
+    $request->header( 'Content-Type' => $self->pmp_content_type );
+    $request->header( 'Authorization' =>
+            sprintf( '%s %s', $token->token_type, $token->access_token ) );
+    my $response = $self->ua->request($request);
+
+    # retry if 401
+    if ( $response->code == 401 ) {
+
+        # occasional persistent 401 errors?
+        sleep(1);
+        $token = $self->get_token(1);
+        $request->header( 'Authorization' =>
+                sprintf( '%s %s', $token->token_type, $token->access_token )
+        );
+
+        $response = $self->ua->request($request);
+        $self->debug and warn "retry DELETE $uri\n" . dump($response);
+    }
+
+    $self->last_response($response);
+
+    if ( $response->code !~ m/^20[02]$/ or !$response->decoded_content ) {
+        croak sprintf( "Unexpected response for DELETE %s: %s\n%s\n",
+            $uri, $response->status_line, $response->content );
+    }
+    return 1;
+}
+
 =head2 get_doc([I<uri>]) 
 
 Returns a Net::PMP::CollectionDoc representing I<uri>. Defaults
 to the API base endpoint if I<uri> is omitted.
+
+If I<uri> is not found, returns 0 (zero) just like get().
 
 =cut
 
@@ -333,6 +395,8 @@ sub get_doc {
 
     # convert JSON response into a CollectionDoc
     $self->debug and warn dump $response;
+
+    return $response unless $response;    # 404
 
     my $doc = Net::PMP::CollectionDoc->new($response);
 
