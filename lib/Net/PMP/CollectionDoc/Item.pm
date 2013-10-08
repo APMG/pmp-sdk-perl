@@ -6,21 +6,6 @@ extends 'Net::PMP::CollectionDoc';
 
 __PACKAGE__->meta->make_immutable();
 
-sub title {
-    my $self = shift;
-    return $self->attributes->{title};
-}
-
-sub uri {
-    my $self = shift;
-    return $self->links->{navigation}->[0]->{href};
-}
-
-sub profile {
-    my $self = shift;
-    return $self->links->{profile}->[0]->{href};
-}
-
 1;
 
 __END__
