@@ -27,6 +27,11 @@ has 'debug'  => ( is => 'rw', isa => 'Bool',  default  => 0, );
 has 'ua'     => ( is => 'rw', isa => 'LWPUA', builder  => '_init_ua', );
 has 'auth_endpoint' =>
     ( is => 'rw', isa => 'Str', default => 'auth/access_token', );
+has 'pmp_content_type' => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => 'application/vnd.pmp.collection.doc+json',
+);
 
 # some constructor-time setup
 sub BUILD {
@@ -135,6 +140,8 @@ sub get_token {
     my $uri     = $self->host . $self->auth_endpoint;
     my $request = HTTP::Request->new( GET => $uri );
     my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
+    $request->header( 'Accept'        => 'application/json' );
+    $request->header( 'Content-Type'  => 'application/json' );
     $request->header( 'Authorization' => 'CLIENT_CREDENTIALS ' . $hash );
     my $response = $self->ua->request($request);
 
@@ -186,7 +193,8 @@ sub get {
     my $uri     = shift or croak "uri required";
     my $request = HTTP::Request->new( GET => $uri );
     my $token   = $self->get_token();
-    $request->header( 'Content-Type' => 'application/json' );
+    $request->header( 'Accept'       => $self->pmp_content_type, );
+    $request->header( 'Content-Type' => $self->pmp_content_type, );
     $request->header( 'Authorization' =>
             sprintf( '%s %s', $token->token_type, $token->access_token ) );
     my $response = $self->ua->request($request);
@@ -252,8 +260,8 @@ sub put {
 
     my $request = HTTP::Request->new( $edit_method => $uri );
     my $token = $self->get_token();
-    $request->header(
-        'Content-Type' => 'application/vnd.pmp.collection.doc+json' );
+    $request->header( 'Accept'       => 'application/json' );
+    $request->header( 'Content-Type' => $self->pmp_content_type );
     $request->header( 'Authorization' =>
             sprintf( '%s %s', $token->token_type, $token->access_token ) );
     $request->content( $doc->as_json() );
