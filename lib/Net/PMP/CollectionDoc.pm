@@ -12,100 +12,6 @@ has 'attributes' => ( is => 'ro', isa => 'HashRef',  required => 1, );
 has 'version'    => ( is => 'ro', isa => 'Str',      required => 1, );
 has 'items'      => ( is => 'ro', isa => 'ArrayRef', required => 0, );
 
-sub get_links {
-    my $self  = shift;
-    my $type  = shift or croak "type required";
-    my $links = $self->links->{$type} or croak "No such type $type";
-    return Net::PMP::CollectionDoc::Links->new(
-        type  => $type,
-        links => $links
-    );
-}
-
-sub get_items {
-    my $self = shift;
-    if ( !$self->items ) {
-        croak "No items defined for CollectionDoc";
-    }
-    my $navlinks = $self->get_links('navigation');
-    my $navself  = $navlinks->rels('urn:pmp:navigation:self')->[0];
-    my $total    = $navself->totalitems;
-    return Net::PMP::CollectionDoc::Items->new(
-        items    => $self->items,
-        navlinks => $navlinks,
-        total    => $total,
-    );
-}
-
-sub query {
-    my $self        = shift;
-    my $urn         = shift or croak "URN required";
-    my $query_links = $self->get_links('query');
-    my $rels        = $query_links->rels($urn);
-    if (@$rels) {
-        return $rels->[0];    # first link found
-    }
-    return undef;
-}
-
-sub get_uri {
-    my $self = shift;
-    if (    $self->links
-        and $self->links->{navigation}
-        and $self->links->{navigation}->[0] )
-    {
-        return $self->links->{navigation}->[0]->{href};
-    }
-    return '';    # TODO??
-}
-
-sub set_uri {
-    my $self = shift;
-    my $uri = shift or croak "uri required";
-    $self->links->{navigation}->[0]->{href} = $uri;
-}
-
-sub get_guid {
-    my $self = shift;
-    if ( $self->attributes and $self->attributes->{guid} ) {
-        return $self->attributes->{guid};
-    }
-    return undef;
-}
-
-sub create_guid {
-    my $self = shift;
-    my $use_remote = shift || 0;
-    if ($use_remote) {
-
-        # TODO use PMP API to create a GUID
-    }
-    else {
-        return lc( create_uuid_as_string(UUID_V4) );
-    }
-}
-
-sub set_guid {
-    my $self = shift;
-    my $guid = shift || $self->create_guid();
-    $self->attributes->{guid} = $guid;
-    return $guid;
-}
-
-sub as_json {
-    my $self = shift;
-    my %hash;
-    for my $m (qw( version attributes links items )) {
-        next if !defined $self->$m;
-        $hash{$m} = $self->$m;
-    }
-    return encode_json( \%hash );
-}
-
-1;
-
-__END__
-
 =head1 NAME
 
 Net::PMP::CollectionDoc - Collection.doc+JSON object for Net::PMP::Client
@@ -121,6 +27,14 @@ Net::PMP::CollectionDoc - Collection.doc+JSON object for Net::PMP::Client
 Net::PMP::CollectionDoc represents the PMP API media type L<https://github.com/publicmediaplatform/pmpdocs/wiki/Collection.doc-JSON-Media-Type>.
 
 =head1 METHODS
+
+=head2 links
+
+=head2 attributes
+
+=head2 version
+
+=head2 items
 
 =head2 get_links( I<type> )
 
@@ -149,6 +63,156 @@ Returns hashref of attribute data.
 =head2 version
 
 Returns API version string.
+
+=cut
+
+sub get_links {
+    my $self  = shift;
+    my $type  = shift or croak "type required";
+    my $links = $self->links->{$type} or croak "No such type $type";
+    return Net::PMP::CollectionDoc::Links->new(
+        type  => $type,
+        links => $links
+    );
+}
+
+=head2 get_items
+
+Returns L<Net::PMP::CollectionDoc::Items> object, unlike the B<items>
+accessor method, which returns the raw hashref.
+
+=cut
+
+sub get_items {
+    my $self = shift;
+    if ( !$self->items ) {
+        croak "No items defined for CollectionDoc";
+    }
+    my $navlinks = $self->get_links('navigation');
+    my $navself  = $navlinks->rels('urn:pmp:navigation:self')->[0];
+    my $total    = $navself->totalitems;
+    return Net::PMP::CollectionDoc::Items->new(
+        items    => $self->items,
+        navlinks => $navlinks,
+        total    => $total,
+    );
+}
+
+=head2 query(I<urn>)
+
+Returns L<Net::PMP::CollectionDoc::Link> object matching I<urn>,
+or undef if no match is found.
+
+=cut
+
+sub query {
+    my $self        = shift;
+    my $urn         = shift or croak "URN required";
+    my $query_links = $self->get_links('query');
+    my $rels        = $query_links->rels($urn);
+    if (@$rels) {
+        return $rels->[0];    # first link found
+    }
+    return undef;
+}
+
+=head2 get_uri
+
+Returns the C<href> string from the C<navigation> link
+representing this CollectionDoc.
+
+=cut
+
+sub get_uri {
+    my $self = shift;
+    if (    $self->links
+        and $self->links->{navigation}
+        and $self->links->{navigation}->[0] )
+    {
+        return $self->links->{navigation}->[0]->{href};
+    }
+    return '';    # TODO??
+}
+
+=head2 set_uri(I<uri>)
+
+Sets the C<href> string for the C<navigation> link
+representing this CollectionDoc.
+
+=cut
+
+sub set_uri {
+    my $self = shift;
+    my $uri = shift or croak "uri required";
+    $self->links->{navigation}->[0]->{href} = $uri;
+}
+
+=head2 get_guid
+
+Returns the C<guid> attribute.
+
+=cut
+
+sub get_guid {
+    my $self = shift;
+    if ( $self->attributes and $self->attributes->{guid} ) {
+        return $self->attributes->{guid};
+    }
+    return undef;
+}
+
+=head2 create_guid([I<use_remote>])
+
+Returns a v4-compliant UUID per PMP spec.
+
+NOTE the I<use_remote> flag is currently ignored.
+
+=cut
+
+sub create_guid {
+    my $self = shift;
+    my $use_remote = shift || 0;
+    if ($use_remote) {
+
+        # TODO use PMP API to create a GUID
+    }
+    else {
+        return lc( create_uuid_as_string(UUID_V4) );
+    }
+}
+
+=head2 set_guid(<Iguid>)
+
+Sets the guid attribute to I<guid>.
+
+=cut
+
+sub set_guid {
+    my $self = shift;
+    my $guid = shift || $self->create_guid();
+    $self->attributes->{guid} = $guid;
+    return $guid;
+}
+
+=head2 as_json
+
+Returns the CollectionDoc as a JSON-encoded string.
+
+=cut
+
+sub as_json {
+    my $self = shift;
+    my %hash;
+    for my $m (qw( version attributes links )) {  # TODO items?
+        next if !defined $self->$m;
+        $hash{$m} = $self->$m;
+    }
+    return encode_json( \%hash );
+}
+
+1;
+
+__END__
 
 =head1 AUTHOR
 
