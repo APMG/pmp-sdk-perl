@@ -72,7 +72,7 @@ Peter Karman, C<< <pkarman at cpan.org> >>
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-net-pmp-client at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-PMP-Client>.  I will be notified, and then you'll
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-PMP>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
 
@@ -80,7 +80,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Net::PMP::Client
+    perldoc Net::PMP::CollectionDoc::Items
 
 
 You can also look for information at:
@@ -89,19 +89,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker (report bugs here)
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-PMP-Client>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-PMP>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/Net-PMP-Client>
+L<http://annocpan.org/dist/Net-PMP>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Net-PMP-Client>
+L<http://cpanratings.perl.org/d/Net-PMP>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Net-PMP-Client/>
+L<http://search.cpan.org/dist/Net-PMP/>
 
 =back
 

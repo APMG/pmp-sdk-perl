@@ -15,8 +15,8 @@ SKIP: {
     # basic authn
 
     ok( my $client = Net::PMP::Client->new(
-            host   => 'https://api-sandbox.pmp.io',
-            id     => $ENV{PMP_CLIENT_ID},
+            host => ( $ENV{PMP_CLIENT_HOST} || 'https://api-sandbox.pmp.io' ),
+            id => $ENV{PMP_CLIENT_ID},
             secret => $ENV{PMP_CLIENT_SECRET},
             debug  => $ENV{PMP_CLIENT_DEBUG},
         ),

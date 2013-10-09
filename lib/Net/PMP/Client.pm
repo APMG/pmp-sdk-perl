@@ -79,7 +79,7 @@ Net::PMP::Client - Perl client for the Public Media Platform
      host   => $host,
      id     => $client_id,
      secret => $client_secret,
- ) or die "Can't connect to server $host: " . $Net::PMP::Client::Error;
+ ); 
 
  # authenticate
  my $token = $client->get_token();
@@ -107,9 +107,45 @@ Net::PMP::Client is a Perl client for the Public Media Platform API (http://docs
 
 =head1 METHODS
 
+=head2 new( I<args> )
+
+Instantiate a Client object. I<args> may consist of:
+
+=over
+
+=item host
+
+Default is C<https://api-sandbox.pmp.io>.
+
+=item id (required)
+
+The client id. See L<https://github.com/publicmediaplatform/pmpdocs/wiki/Authenticating-with-the-API#generating-credentials>.
+
+=item secret (required)
+
+The client secret. See L<https://github.com/publicmediaplatform/pmpdocs/wiki/Authenticating-with-the-API#generating-credentials>.
+
+=item debug
+
+Boolean. Default is off.
+
+=item ua
+
+A LWP::UserAgent object.
+
+=item pmp_content_type
+
+Defaults to C<application/vnd.pmp.collection.doc+json>. Change at your peril.
+
+=back
+
 =head2 BUILD
 
 Internal method for object construction.
+
+=head2 last_response
+
+Returns the most recent HTTP::Response object. Useful for debugging client behaviour.
 
 =head2 get_token([I<refresh>])
 
@@ -453,7 +489,7 @@ Peter Karman, C<< <pkarman at cpan.org> >>
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-net-pmp-client at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-PMP-Client>.  I will be notified, and then you'll
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-PMP>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
 
@@ -470,19 +506,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker (report bugs here)
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-PMP-Client>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-PMP>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/Net-PMP-Client>
+L<http://annocpan.org/dist/Net-PMP>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Net-PMP-Client>
+L<http://cpanratings.perl.org/d/Net-PMP>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Net-PMP-Client/>
+L<http://search.cpan.org/dist/Net-PMP/>
 
 =back
 

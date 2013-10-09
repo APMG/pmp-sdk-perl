@@ -1,4 +1,4 @@
-Net-PMP-Client
+Net-PMP
 
 See the Public Media Platform site (http://docs.pmp.io/) for more details.
 
@@ -16,21 +16,21 @@ SUPPORT AND DOCUMENTATION
 After installing, you can find documentation for this module with the
 perldoc command.
 
-    perldoc Net::PMP::Client
+    perldoc Net::PMP
 
 You can also look for information at:
 
     RT, CPAN's request tracker (report bugs here)
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-PMP-Client
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-PMP
 
     AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/Net-PMP-Client
+        http://annocpan.org/dist/Net-PMP
 
     CPAN Ratings
-        http://cpanratings.perl.org/d/Net-PMP-Client
+        http://cpanratings.perl.org/d/Net-PMP
 
     Search CPAN
-        http://search.cpan.org/dist/Net-PMP-Client/
+        http://search.cpan.org/dist/Net-PMP/
 
 
 LICENSE AND COPYRIGHT

@@ -1,24 +1,15 @@
-package Net::PMP::AuthToken;
-use Mouse;
-use Carp;
-
-has 'access_token'     => ( is => 'rw', isa => 'Str', required => 1, );
-has 'token_type'       => ( is => 'rw', isa => 'Str', required => 1, );
-has 'token_issue_date' => ( is => 'rw', isa => 'Str', required => 1, );
-has 'token_expires_in' => ( is => 'rw', isa => 'Int', required => 1, );
-
-use overload
-    '""'     => sub { $_[0]->as_string; },
-    'bool'   => sub {1},
-    fallback => 1;
-
-__PACKAGE__->meta->make_immutable();
+package Net::PMP;
+use strict;
+use warnings;
+use Net::PMP::Client;
+use Net::PMP::CollectionDoc;
 
 our $VERSION = '0.01';
 
-sub expires_in { shift->token_expires_in(@_) }
-
-sub as_string { return shift->access_token }
+sub client {
+    my $class = shift;
+    return Net::PMP::Client->new(@_); 
+}
 
 1;
 
@@ -26,51 +17,47 @@ __END__
 
 =head1 NAME
 
-Net::PMP::AuthToken - authorization token for Net::PMP::Client
+Net::PMP - Perl SDK for the Public Media Platform
 
 =head1 SYNOPSIS
 
- use Net::PMP::Client;
+ use Net::PMP;
  
  my $host = 'https://api-sandbox.pmp.io';
  my $client_id = 'i-am-a-client';
  my $client_secret = 'i-am-a-secret';
 
  # instantiate a client
- my $client = Net::PMP::Client->new(
+ my $client = Net::PMP->client(
      host   => $host,
      id     => $client_id,
      secret => $client_secret,
- ) or die "Can't connect to server $host: " . $Net::PMP::Client::Error;
+ ); 
 
- # authenticate
- my $token = $client->get_token();
- if ($token->expires_in() < 10) {
-     die "Access token expires too soon. Not enough time to make a request. Mayday, mayday!";
- }
- printf("PMP token is: %s\n, $token->as_string());
+ # search
+ my $search_results = $client->search(
+     $doc->query('urn:pmp:query:docs')
+       ->as_uri( { tag => 'samplecontent', profile => 'story' } ) 
+ );  
+ my $results = $search_results->get_items();
+ printf( "total: %s\n", $results->total );
+ while ( my $r = $results->next ) { 
+     printf( '%s: %s [%s]', $results->count, $r->get_uri, $r->get_title, ) );
+ }   
+ 
+=cut
 
 =head1 DESCRIPTION
 
-Net::PMP::AuthToken is the object representation of an authorization token.
+Net::PMP is a Perl client for the Public Media Platform API (http://docs.pmp.io/).
+
+This class is mostly a namespace-holder and documentation, with one convenience method: client().
 
 =head1 METHODS
 
-=head2 access_token
+=head2 client( I<args> )
 
-=head2 token_type
-
-=head2 token_issue_date
-
-=head2 token_expires_in
-
-=head2 expires_in
-
-Alias for B<token_expires_in>.
-
-=head2 as_string
-
-Returns the B<access_token>. Objects are overloaded to stringify with as_string().
+Returns a new Net::PMP::Client object. See L<Net::PMP::Client> new() method for I<args> details.
 
 =head1 AUTHOR
 
@@ -87,7 +74,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Net::PMP::AuthToken
+    perldoc Net::PMP
 
 
 You can also look for information at:

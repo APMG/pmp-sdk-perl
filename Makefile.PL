@@ -3,10 +3,10 @@ use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME               => 'Net::PMP::Client',
+    NAME               => 'Net::PMP',
     AUTHOR             => q{Peter Karman <pkarman@cpan.org>},
-    VERSION_FROM       => 'lib/Net/PMP/Client.pm',
-    ABSTRACT_FROM      => 'lib/Net/PMP/Client.pm',
+    VERSION_FROM       => 'lib/Net/PMP.pm',
+    ABSTRACT_FROM      => 'lib/Net/PMP.pm',
     LICENSE            => 'MIT',
     PL_FILES           => {},
     MIN_PERL_VERSION   => 5.008009,
@@ -22,5 +22,5 @@ WriteMakefile(
         'UUID::Tiny'     => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES    => 'Net-PMP-Client-*' },
+    clean => { FILES    => 'Net-PMP-*' },
 );
