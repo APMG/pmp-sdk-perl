@@ -1,8 +1,12 @@
 Changes
+lib/Net/PMP.pm
 lib/Net/PMP/AuthToken.pm
 lib/Net/PMP/Client.pm
 lib/Net/PMP/CollectionDoc.pm
 lib/Net/PMP/CollectionDoc/Links.pm
+lib/Net/PMP/CollectionDoc/Link.pm
+lib/Net/PMP/CollectionDoc/Items.pm
+lib/Net/PMP/CollectionDoc/Item.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
