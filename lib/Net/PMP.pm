@@ -35,10 +35,7 @@ Net::PMP - Perl SDK for the Public Media Platform
  ); 
 
  # search
- my $search_results = $client->search(
-     $doc->query('urn:pmp:query:docs')
-       ->as_uri( { tag => 'samplecontent', profile => 'story' } ) 
- );  
+ my $search_results = $client->search({ tag => 'samplecontent', profile => 'story' });  
  my $results = $search_results->get_items();
  printf( "total: %s\n", $results->total );
  while ( my $r = $results->next ) { 

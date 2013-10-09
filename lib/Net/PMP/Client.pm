@@ -35,7 +35,8 @@ sub BUILD {
     my $self = shift;
     $self->{host} .= '/' unless $self->host =~ m/\/$/;
     $self->{_last_token_ts} = 0;
-    $self->get_token();    # initiate connection
+    $self->get_token();               # initiate connection
+    $self->_set_base_doc_config();    # basic introspection
     return $self;
 }
 
@@ -89,10 +90,7 @@ Net::PMP::Client - Perl client for the Public Media Platform
  printf("PMP token is: %s\n, $token->as_string());
 
  # search
- my $search_results = $client->search(
-     $doc->query('urn:pmp:query:docs')
-       ->as_uri( { tag => 'samplecontent', profile => 'story' } ) 
- );  
+ my $search_results = $client->search( { tag => 'samplecontent', profile => 'story' } );  
  my $results = $search_results->get_items();
  printf( "total: %s\n", $results->total );
  while ( my $r = $results->next ) { 
@@ -300,9 +298,9 @@ sub get_base_publish_method {
 }
 
 sub _set_base_doc_config {
-    my $self       = shift;
-    my $api_doc    = $self->get_doc();
-    my $edit_links = $api_doc->get_links('edit');
+    my $self = shift;
+    $self->{_base_doc} ||= $self->get_doc();
+    my $edit_links = $self->{_base_doc}->get_links('edit');
     $self->{_base_doc_uri}         = $edit_links->links->[0]->href;
     $self->{_base_doc_edit_method} = $edit_links->links->[0]->method;
 }
@@ -439,15 +437,18 @@ sub get_doc {
     return $doc;
 }
 
-=head2 search( I<uri> )
+=head2 search( I<opts> )
 
-Returns a Net::PMP::CollectionDoc object for I<uri>.
+Returns a Net::PMP::CollectionDoc object for I<opts>.
+I<opts> are passed directly to the query link URI template.
+See L<https://github.com/publicmediaplatform/pmpdocs/wiki/Query-Link-Relation>.
 
 =cut
 
 sub search {
     my $self = shift;
-    my $uri = shift or croak "uri required";
+    my $opts = shift or croak "options required";
+    my $uri  = $self->{_base_doc}->query('urn:pmp:query:docs')->as_uri($opts);
     return $self->get_doc($uri);
 }
 

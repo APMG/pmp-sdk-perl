@@ -94,10 +94,9 @@ SKIP: {
     ############################################################################
     # search sample content
 
-    ok( my $search_results = $client->search(
-            $doc->query('urn:pmp:query:docs')
-                ->as_uri( { tag => 'samplecontent', profile => 'story' } )
-        ),
+    ok( my $search_results
+            = $client->search(
+            { tag => 'samplecontent', profile => 'story' } ),
         "submit search"
     );
     ok( my $results = $search_results->get_items(),
@@ -143,12 +142,8 @@ SKIP: {
     sleep(3);    # since create is 202 ...
 
     # Read
-    ok( $search_results = $client->search(
-            $doc->query('urn:pmp:hreftpl:docs')
-                ->as_uri( { guid => $sample_doc->get_guid() } )
-        ),
-        "search for sample doc"
-    );
+    ok( $search_results = $client->get_doc( $sample_doc->get_uri() ),
+        "search for sample doc" );
     is( $client->last_response->code, 200, 'search response was 200' );
     is( $search_results->get_guid(),
         $sample_doc->get_guid(),
