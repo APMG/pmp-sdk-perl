@@ -90,11 +90,11 @@ Net::PMP::Client - Perl client for the Public Media Platform
  printf("PMP token is: %s\n, $token->as_string());
 
  # search
- my $search_results = $client->search( { tag => 'samplecontent', profile => 'story' } );  
+ my $search_results = $client->search({ tag => 'samplecontent', profile => 'story' });  
  my $results = $search_results->get_items();
  printf( "total: %s\n", $results->total );
  while ( my $r = $results->next ) { 
-     printf( '%s: %s [%s]', $results->count, $r->uri, $r->title, ) );
+     printf( '%s: %s [%s]', $results->count, $r->get_uri, $r->get_title, ) );
  }   
  
 =cut
