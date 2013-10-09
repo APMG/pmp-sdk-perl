@@ -62,7 +62,7 @@ Peter Karman, C<< <pkarman at cpan.org> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-net-pmp-client at rt.cpan.org>, or through
+Please report any bugs or feature requests to C<bug-net-pmp at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-PMP>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
@@ -77,6 +77,10 @@ You can find documentation for this module with the perldoc command.
 You can also look for information at:
 
 =over 4
+
+=item IRC
+
+Join #pmp on L<http://freenode.net>.
 
 =item * RT: CPAN's request tracker (report bugs here)
 
