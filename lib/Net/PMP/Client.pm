@@ -280,6 +280,12 @@ sub _set_base_doc_config {
         = $edit_links->rels("urn:pmp:form:documentsave")->[0];
 }
 
+=head2 get_doc_edit_link
+
+Retrieves the base doc edit link object for the API.
+
+=cut
+
 sub get_doc_edit_link {
     my $self = shift;
     return $self->{_doc_edit_link} if $self->{_doc_edit_link};
