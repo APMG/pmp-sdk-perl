@@ -44,7 +44,6 @@ SKIP: {
             "urn:pmp:hreftpl:profiles" => "Access profiles",
             "urn:pmp:hreftpl:schemas"  => "Access schemas",
             "urn:pmp:query:docs"       => "Query for documents",
-            "urn:pmp:query:files"      => "Upload media files",
             "urn:pmp:query:groups"     => "Query for groups",
             "urn:pmp:query:guids"      => "Generate guids",
             "urn:pmp:query:users"      => "Query for users",
@@ -128,7 +127,7 @@ SKIP: {
                 #guid  => '5890510b-f237-3714-9f51-36ceafd8bbb7',
             },
             links => {
-                profile => [ { href => $client->host . 'profiles/story' } ]
+                profile => [ { href => $client->host . '/profiles/story' } ]
             },
         ),
         "create new sample doc"
@@ -162,8 +161,8 @@ SKIP: {
 
     # Delete
     ok( $client->delete($sample_doc), "delete sample doc" );
-    is( $client->last_response->code, 202, "delete response was 202" );
-    sleep(3);    # since delete is 202
+    is( $client->last_response->code, 204, "delete response was 204" );
+    sleep(3);    # since delete is 204 but really maybe should be 202?
     ok( !$client->get_doc( $sample_doc->get_uri ),
         "get_doc() for sample now empty"
     );

@@ -156,22 +156,31 @@ sub get_uri {
     return '';    # TODO??
 }
 
-=head2 get_publish_uri
+=head2 get_publish_uri([I<edit_link>])
 
 Returns the C<href> string from the C<edit> link
 representing this CollectionDoc.
 
+I<edit_link> may be passed explicitly, which is
+usually necessary for saving a doc the first time.
+
 =cut
 
 sub get_publish_uri {
-    my $self = shift;
+    my $self      = shift;
+    my $edit_link = shift;
     if (    $self->links
         and $self->links->{edit}
         and $self->links->{edit}->[0] )
     {
         return $self->links->{edit}->[0]->{href};
     }
-    return '';    # TODO??
+    if ($edit_link) {
+        my $guid = $self->get_guid() || $self->create_guid();
+        my $uri = $edit_link->as_uri( { guid => $guid } );
+        return $uri;
+    }
+    croak "No edit link defined in Doc and none passed to get_publish_uri()";
 }
 
 =head2 set_uri(I<uri>)

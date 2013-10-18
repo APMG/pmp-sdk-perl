@@ -22,7 +22,7 @@ has 'secret' => ( is => 'rw', isa => 'Str',  required => 1, );
 has 'debug'  => ( is => 'rw', isa => 'Bool', default  => 0, );
 has 'ua' => ( is => 'rw', isa => 'LWP::UserAgent', builder => '_init_ua', );
 has 'auth_endpoint' =>
-    ( is => 'rw', isa => 'Str', default => 'auth/access_token', );
+    ( is => 'rw', isa => 'Str', default => '/auth/access_token', );
 has 'pmp_content_type' => (
     is      => 'rw',
     isa     => 'Str',
@@ -33,7 +33,7 @@ has 'last_response' => ( is => 'rw', isa => 'HTTP::Response', );
 # some constructor-time setup
 sub BUILD {
     my $self = shift;
-    $self->{host} .= '/' unless $self->host =~ m/\/$/;
+    $self->{host} =~ s/\/$//;    # no trailing slash
     $self->{_last_token_ts} = 0;
     $self->get_token();               # initiate connection
     $self->_set_base_doc_config();    # basic introspection
@@ -169,11 +169,12 @@ sub get_token {
 
     # fetch new token
     my $uri     = $self->host . $self->auth_endpoint;
-    my $request = HTTP::Request->new( GET => $uri );
+    my $request = HTTP::Request->new( POST => $uri );
     my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
-    $request->header( 'Accept'        => 'application/json' );
-    $request->header( 'Content-Type'  => 'application/json' );
-    $request->header( 'Authorization' => 'CLIENT_CREDENTIALS ' . $hash );
+    $request->header( 'Accept'       => 'application/json' );
+    $request->header( 'Content-Type' => 'application/x-www-form-urlencoded' );
+    $request->header( 'Authorization' => 'Basic ' . $hash );
+    $request->content('grant_type=client_credentials');
     my $response = $self->ua->request($request);
 
     if ( $response->code != 200 ) {
@@ -204,7 +205,7 @@ sub revoke_token {
     my $uri     = $self->host . $self->auth_endpoint;
     my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
     my $request = HTTP::Request->new( DELETE => $uri );
-    $request->header( 'Authorization' => 'CLIENT_CREDENTIALS ' . $hash );
+    $request->header( 'Authorization' => 'Basic ' . $hash );
     my $response = $self->ua->request($request);
 
     if ( $response->code != 204 ) {
@@ -271,38 +272,19 @@ sub get {
     return $json;
 }
 
-=head2 get_base_publish_uri
-
-Returns the root URI for publishing documents.
-
-=cut
-
-sub get_base_publish_uri {
-    my $self = shift;
-    return $self->{_base_doc_uri} if $self->{_base_doc_uri};
-    $self->_set_base_doc_config();
-    return $self->{_base_doc_uri};
-}
-
-=head2 get_base_publish_method
-
-Returns the HTTP method to used for publishing documents.
-
-=cut
-
-sub get_base_publish_method {
-    my $self = shift;
-    return $self->{_base_doc_edit_method} if $self->{_base_doc_edit_method};
-    $self->_set_base_doc_config();
-    return $self->{_base_doc_edit_method};
-}
-
 sub _set_base_doc_config {
     my $self = shift;
     $self->{_base_doc} ||= $self->get_doc();
     my $edit_links = $self->{_base_doc}->get_links('edit');
-    $self->{_base_doc_uri}         = $edit_links->links->[0]->href;
-    $self->{_base_doc_edit_method} = $edit_links->links->[0]->method;
+    $self->{_doc_edit_link}
+        = $edit_links->rels("urn:pmp:form:documentsave")->[0];
+}
+
+sub get_doc_edit_link {
+    my $self = shift;
+    return $self->{_doc_edit_link} if $self->{_doc_edit_link};
+    $self->_set_base_doc_config();
+    return $self->{_doc_edit_link};
 }
 
 =head2 put(I<doc_object>)
@@ -321,13 +303,9 @@ sub put {
     if ( !blessed $doc or !$doc->isa('Net::PMP::CollectionDoc') ) {
         croak "doc must be a Net::PMP::CollectionDoc object";
     }
-    my $edit_method = $self->get_base_publish_method();
-    my $uri         = $doc->get_publish_uri()
-        || ( $self->get_base_publish_uri() . '/'
-        . ( $doc->get_guid() || $doc->create_guid() ) );
-
-    my $request = HTTP::Request->new( $edit_method => $uri );
-    my $token = $self->get_token();
+    my $uri     = $doc->get_publish_uri( $self->get_doc_edit_link );
+    my $request = HTTP::Request->new( PUT => $uri );
+    my $token   = $self->get_token();
     $request->header( 'Accept'       => 'application/json' );
     $request->header( 'Content-Type' => $self->pmp_content_type );
     $request->header( 'Authorization' =>
@@ -347,14 +325,14 @@ sub put {
 
         #sleep(1);
         $response = $self->ua->request($request);
-        $self->debug and warn "retry $edit_method $uri\n" . dump($response);
+        $self->debug and warn "retry PUT $uri\n" . dump($response);
     }
 
     $self->last_response($response);
 
     if ( $response->code !~ m/^20[02]$/ or !$response->decoded_content ) {
-        croak sprintf( "Unexpected response for %s %s: %s\n%s\n",
-            $edit_method, $uri, $response->status_line, $response->content );
+        croak sprintf( "Unexpected response for PUT %s: %s\n%s\n",
+            $uri, $response->status_line, $response->content );
     }
 
     my $json;
@@ -377,12 +355,9 @@ sub delete {
     if ( !blessed $doc or !$doc->isa('Net::PMP::CollectionDoc') ) {
         croak "doc must be a Net::PMP::CollectionDoc object";
     }
-    my $uri = $doc->get_publish_uri()
-        || ( $self->get_base_publish_uri() . '/'
-        . ( $doc->get_guid() || $doc->create_guid() ) );
-
+    my $uri     = $doc->get_publish_uri( $self->get_doc_edit_link );
     my $request = HTTP::Request->new( DELETE => $uri );
-    my $token = $self->get_token();
+    my $token   = $self->get_token();
     $request->header( 'Accept'       => 'application/json' );
     $request->header( 'Content-Type' => $self->pmp_content_type );
     $request->header( 'Authorization' =>
@@ -405,7 +380,7 @@ sub delete {
 
     $self->last_response($response);
 
-    if ( $response->code !~ m/^20[02]$/ or !$response->decoded_content ) {
+    if ( $response->code != 204 ) {
         croak sprintf( "Unexpected response for DELETE %s: %s\n%s\n",
             $uri, $response->status_line, $response->content );
     }
