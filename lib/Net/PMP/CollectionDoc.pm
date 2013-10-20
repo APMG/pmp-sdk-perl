@@ -147,12 +147,17 @@ representing this CollectionDoc.
 
 sub get_uri {
     my $self = shift;
-    if (    $self->links
-        and $self->links->{navigation}
-        and $self->links->{navigation}->[0] )
-    {
-        return $self->links->{navigation}->[0]->{href};
+    if ( $self->links and $self->links->{navigation} ) {
+        my $nav      = $self->get_links('navigation');
+        my $nav_self = $nav->rels('urn:pmp:navigation:self')->[0];
+        if ($nav_self) {
+            return $nav_self->href;
+        }
+        else {
+            return $self->links->{navigation}->[0]->{href};
+        }
     }
+
     return '';    # TODO??
 }
 
@@ -170,10 +175,11 @@ sub get_publish_uri {
     my $self      = shift;
     my $edit_link = shift;
     if (    $self->links
-        and $self->links->{edit}
-        and $self->links->{edit}->[0] )
+        and $self->links->{edit} )
     {
-        return $self->links->{edit}->[0]->{href};
+        $edit_link
+            = $self->get_links('edit')->rels('urn:pmp:form:documentsave')
+            ->[0];
     }
     if ($edit_link) {
         my $guid = $self->get_guid() || $self->create_guid();

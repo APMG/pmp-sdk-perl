@@ -57,7 +57,7 @@ sub rels {
     my @links;
     for my $urn (@urns) {
         for my $link ( @{ $self->links } ) {
-            for my $rel ( @{ $link->rels } ) {
+            for my $rel ( @{ $link->rels || [] } ) {
                 if ( $rel eq $urn ) {
                     push @links, $link;
                 }
