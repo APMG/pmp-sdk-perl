@@ -429,6 +429,19 @@ sub get_doc {
     return $doc;
 }
 
+=head2 get_doc_by_guid(I<guid>)
+
+Like get_doc() but takes a I<guid> as argument.
+
+=cut
+
+sub get_doc_by_guid {
+    my $self = shift;
+    my $guid = shift or croak "guid required";
+    return $self->get_doc( $self->{_base_doc}->query('urn:pmp:hreftpl:docs')
+            ->as_uri( { guid => $guid } ) );
+}
+
 =head2 search( I<opts> )
 
 Search in the 'urn:pmp:query:docs' namespace.
