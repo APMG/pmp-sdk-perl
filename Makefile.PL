@@ -1,28 +1,31 @@
+#!/usr/bin/env perl
 use strict;
 use warnings FATAL => 'all';
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
+use 5.008003;
+
+name 'Net-PMP';
+all_from 'lib/Net/PMP.pm';
+
+requires 'Mouse'                => 0;
+requires 'MouseX::SimpleConfig' => 0;
+requires 'MouseX::Getopt'       => 0;
+requires 'Test::More'           => 0;
+requires 'JSON'                 => 2.0;
+requires 'LWP::UserAgent'       => 0;
+requires 'Data::Dump'           => 0;
+requires 'URI::Template'        => 0;
+requires 'UUID::Tiny'           => 0;
+
+perl_version '5.8.3';
+license 'MIT';
+homepage 'https://github.com/APMG/pmp-sdk-perl';
+bugtracker 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-PMP';
+repository 'http://github.com/APMG/pmp-sdk-perl';
+install_script 'bin/pmpc';
 
 WriteMakefile(
-    NAME               => 'Net::PMP',
-    AUTHOR             => q{Peter Karman <pkarman@cpan.org>},
-    VERSION_FROM       => 'lib/Net/PMP.pm',
-    ABSTRACT_FROM      => 'lib/Net/PMP.pm',
-    LICENSE            => 'MIT',
-    PL_FILES           => {},
-    MIN_PERL_VERSION   => 5.008009,
-    CONFIGURE_REQUIRES => { 'ExtUtils::MakeMaker' => 0, },
-    BUILD_REQUIRES     => { 'Test::More' => 0, },
-    PREREQ_PM          => {
-        'Mouse'                => 0,
-        'MouseX::SimpleConfig' => 0,
-        'MouseX::Getopt'       => 0,
-        'Test::More'           => 0,
-        'JSON'                 => 2.0,
-        'LWP::UserAgent'       => 0,
-        'Data::Dump'           => 0,
-        'URI::Template'        => 0,
-        'UUID::Tiny'           => 0,
-    },
-    dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES    => 'Net-PMP-*' },
+    PL_FILES => {},
+    dist     => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    clean => { FILES => '' },
 );
