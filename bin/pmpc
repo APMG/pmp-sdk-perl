@@ -14,6 +14,12 @@ pmpc - Net::PMP::CLI application
 
 =head1 SYNOPSIS
 
+ # create a config file to store id+secret
+ # Config::Any recognizes many config file formats by file extension.
+ % cat ~/.pmp.yaml
+ id: my-id-string
+ secret: my-secret-string
+
  # list all users
  % pmpc users 
 

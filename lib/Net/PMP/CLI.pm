@@ -30,8 +30,13 @@ Net::PMP::CLI - command line application for Net::PMP::Client
 =head1 DESCRIPTION
 
 This class is used by the C<pmpc> command-line tool.
+It uses L<MouseX::SimpleConfig> and L<MouseX::Getopt> to allow
+for simple configuration file and option parsing.
 
 =head1 METHODS
+
+With the exceptions of B<run> and B<init_client> all method
+names are commands.
 
 =head2 run
 
