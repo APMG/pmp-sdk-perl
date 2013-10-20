@@ -52,17 +52,30 @@ sub run {
     my @cmds = @{ $self->extra_argv };
 
     if ( !@cmds or $self->help_flag ) {
-        die $self->usage;
+        $self->usage->die( { post_text => $self->commands } );
     }
 
     for my $cmd (@cmds) {
         if ( !$self->can($cmd) ) {
             warn "No such command $cmd\n";
-            die $self->usage;
+            $self->usage->die( { post_text => $self->commands } );
         }
         $self->$cmd();
     }
 
+}
+
+sub commands {
+    my $self = shift;
+    my $txt  = <<EOF;
+commands:
+    create  --profile <profile> --title <title>
+    delete  --guid <guid>
+    get     --path /path/to/resource
+    groups
+    users
+EOF
+    return $txt;
 }
 
 sub _list_items {
