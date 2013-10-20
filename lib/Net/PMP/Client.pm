@@ -8,6 +8,7 @@ use MIME::Base64;
 use JSON;
 use Net::PMP::AuthToken;
 use Net::PMP::CollectionDoc;
+use Net::PMP::Schema;
 
 our $VERSION = '0.01';
 
@@ -406,6 +407,11 @@ sub get_doc {
     my $self = shift;
     my $uri = shift || $self->host;
 
+    # optimize a little for the root doc
+    if ( $uri eq $self->host and $self->{_base_doc} ) {
+        return $self->{_base_doc};
+    }
+
     my $response = $self->get($uri);
 
     # convert JSON response into a CollectionDoc
@@ -413,12 +419,19 @@ sub get_doc {
 
     return $response unless $response;    # 404
 
+    # check content type to determine object
+    if ( $self->last_response->content_type eq 'application/schema+json' ) {
+        return Net::PMP::Schema->new($response);
+    }
+
     my $doc = Net::PMP::CollectionDoc->new($response);
 
     return $doc;
 }
 
 =head2 search( I<opts> )
+
+Search in the 'urn:pmp:query:docs' namespace.
 
 Returns a Net::PMP::CollectionDoc object for I<opts>.
 I<opts> are passed directly to the query link URI template.
