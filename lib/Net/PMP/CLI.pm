@@ -18,6 +18,8 @@ has 'path'    => ( is => 'rw', isa => 'Str', );
 has 'guid'    => ( is => 'rw', isa => 'Str', );
 has 'parent'  => ( is => 'rw', isa => 'Str', );
 has 'child'   => ( is => 'rw', isa => 'Str', );
+has 'tag'     => ( is => 'rw', isa => 'Str', );
+has 'query'   => ( is => 'rw', isa => 'HashRef', );
 
 =head1 NAME
 
@@ -106,6 +108,20 @@ sub _list_items {
     }
 }
 
+sub search {
+    my $self   = shift;
+    my $query  = $self->query or die "--query required for search\n";
+    my $client = $self->init_client();
+    my $res    = $client->search($query) or return;
+    my $items  = $res->get_items();
+    while ( my $item = $items->next ) {
+        my $profile = $item->get_profile;
+        $profile =~ s,^.+/,,;
+        printf( "%s: %s [%s]\n",
+            $profile, $item->get_title, $item->get_uri, );
+    }
+}
+
 =head2 create
 
 Create or update a resource via Net::PMP::Client.
@@ -155,6 +171,23 @@ sub delete {
     }
     else {
         printf( "Failed to delete %s\n", $guid );    # never get here, croaks
+    }
+}
+
+sub delete_by_tag {
+    my $self   = shift;
+    my $tag    = $self->tag or die "--tag required for delete_by_tag\n";
+    my $client = $self->init_client;
+
+    # TODO arbitrary limit
+    my $matches = $client->search( { tag => $tag, limit => 100, } );
+    if ($matches) {
+        my $res = $matches->get_items();
+        while ( my $item = $res->next ) {
+            if ( $client->delete($item) ) {
+                printf( "Deleted %s\n", $item->get_uri );
+            }
+        }
     }
 }
 
