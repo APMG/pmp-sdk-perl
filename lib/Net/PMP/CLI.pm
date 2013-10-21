@@ -86,17 +86,21 @@ sub _list_items {
     my $client = $self->init_client();
     my $root   = $client->get_doc();
     my $q      = $root->query($urn);
-    my $uri    = $q->as_uri( {} );
+    my $uri    = $q->as_uri( { limit => 200 } );     # TODO random big number
     my $res    = $client->get_doc($uri) or return;
     my $items  = $res->get_items();
     while ( my $item = $items->next ) {
-        printf( "%s: %s [%s] [%s]\n",
-            $label, $item->get_title, $item->get_guid, $item->get_profile, );
+        my $profile = $item->get_profile;
+        $profile =~ s,^.+/,,;
+        printf( "%s [%s]: %s [%s]\n",
+            $label, $profile, $item->get_title, $item->get_uri, );
         if ( $item->has_items ) {
             my $iitems = $item->get_items;
             while ( my $iitem = $iitems->next ) {
+                my $iprofile = $item->get_profile;
+                $iprofile =~ s,^.+/,,;
                 printf( " contains: %s [%s] [%s]\n",
-                    $iitem->get_title, $iitem->get_guid, $item->get_profile );
+                    $iitem->get_title, $iitem->get_uri, $iprofile );
             }
         }
     }
@@ -128,7 +132,7 @@ sub create {
         },
     );
     $client->save($doc);
-    printf( "%s saved as %s at %s\n",
+    printf( "%s saved as '%s' at %s\n",
         $profile, $doc->get_title, $doc->get_uri );
 }
 
