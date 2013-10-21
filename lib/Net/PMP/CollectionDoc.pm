@@ -98,6 +98,22 @@ sub get_items {
     );
 }
 
+=head2 has_items
+
+Returns total number of items this CollectionDoc refers to.
+
+=cut
+
+sub has_items {
+    my $self = shift;
+    if ( !$self->items ) {
+        return 0;
+    }
+    my $navlinks = $self->get_links('navigation');
+    my $navself  = $navlinks->rels('urn:pmp:navigation:self')->[0];
+    return $navself->totalitems;
+}
+
 =head2 query(I<urn>)
 
 Returns L<Net::PMP::CollectionDoc::Link> object matching I<urn>,
@@ -250,24 +266,59 @@ sub set_guid {
     return $guid;
 }
 
+=head2 as_hash
+
+Returns the CollectionDoc as a hashref. as_json() calls this method
+internally.
+
 =head2 as_json
 
 Returns the CollectionDoc as a JSON-encoded string suitable for saving.
 
 =cut
 
-sub as_json {
+sub as_hash {
     my $self = shift;
     my %hash;
-    for my $m (qw( version attributes )) {    # TODO items?
+    for my $m (qw( version attributes )) {
         next if !defined $self->$m;
         $hash{$m} = $self->$m;
     }
 
-    # only one link allowed
-    $hash{links}->{profile} = $self->links->{profile};
+    # items are Docs
+    if ( $self->items and @{ $self->items } ) {
+        $hash{items} = [];
+        for my $item ( @{ $self->items } ) {
+            push @{ $hash{items} }, $item->as_hash;
+        }
+    }
 
-    return encode_json( \%hash );
+    # only one link allowed ??
+    $hash{links}->{profile} = $self->links->{profile};
+    if ( $self->get_guid ) {
+        $hash{links}->{self} = [ { href => $self->get_uri } ];
+    }
+
+    return \%hash;
+}
+
+sub as_json {
+    my $self = shift;
+    return encode_json( $self->as_hash );
+}
+
+=head2 add_item( I<child> )
+
+Shortcut for:
+
+  push @{ $doc->items }, $child;
+
+=cut
+
+sub add_item {
+    my $self = shift;
+    my $child = shift or croak "child required";
+    push @{ $self->{items} }, $child;
 }
 
 1;
