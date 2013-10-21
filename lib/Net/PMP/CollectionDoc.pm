@@ -271,10 +271,6 @@ sub set_guid {
 Returns the CollectionDoc as a hashref. as_json() calls this method
 internally.
 
-=head2 as_json
-
-Returns the CollectionDoc as a JSON-encoded string suitable for saving.
-
 =cut
 
 sub as_hash {
@@ -286,14 +282,16 @@ sub as_hash {
     }
 
     # items are Docs
+    # but top-level links are just convenience.
+    # only those in links are authoritative
     if ( $self->items and @{ $self->items } ) {
-        $hash{items} = [];
+        $hash{links}->{item} = [];
         for my $item ( @{ $self->items } ) {
-            push @{ $hash{items} }, $item->as_hash;
+            push @{ $hash{links}->{item} }, $item->as_link_hash;
         }
     }
 
-    # only one link allowed ??
+    # flesh out links with anything required for save
     $hash{links}->{profile} = $self->links->{profile};
     if ( $self->get_guid ) {
         $hash{links}->{self} = [ { href => $self->get_uri } ];
@@ -301,6 +299,31 @@ sub as_hash {
 
     return \%hash;
 }
+
+=head2 as_link_hash
+
+Returns minimal hashref describing CollectionDoc, suitable
+for B<links> B<item> attribute. This method is called internally
+by as_hash(); it automatically recurses for any descendent items.
+
+=cut
+
+sub as_link_hash {
+    my $self = shift;
+    my %hash = ( href => $self->get_uri() );
+    if ( $self->links and $self->links->{item} ) {
+        for my $iitem ( @{ $self->links->{item} } ) {
+            push @{ $hash{links}->{item} }, $iitem->as_link_hash();
+        }
+    }
+    return \%hash;
+}
+
+=head2 as_json
+
+Returns the CollectionDoc as a JSON-encoded string suitable for saving.
+
+=cut
 
 sub as_json {
     my $self = shift;
