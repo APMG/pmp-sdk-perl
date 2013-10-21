@@ -19,10 +19,27 @@ sub next {
     my $self = shift;
     $self->{_idx} ||= 0;
     my $items = $self->items;
-    if ( @$items <= $self->{_idx} ) {
+    my $count = scalar(@$items);
+
+    # grab reference for convenience
+    my $i = \$self->{_idx};
+    if ( $count <= ++$$i ) {
         return undef;
     }
-    return Net::PMP::CollectionDoc::Item->new( $items->[ $self->{_idx}++ ] );
+    while (
+        $count >= $$i
+        and ( !defined $items->[$$i]
+            or ref( $items->[$$i] ) ne 'HASH' )
+        )
+    {
+        warn "[$count] invalid Items object at $$i : "
+            . dump( $items->[$$i] );
+        $$i++;
+        if ( $count <= $$i ) {
+            return undef;
+        }
+    }
+    return Net::PMP::CollectionDoc::Item->new( $items->[$$i] );
 }
 
 sub count {
