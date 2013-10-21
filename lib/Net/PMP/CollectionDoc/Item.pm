@@ -16,13 +16,12 @@ Net::PMP::CollectionDoc::Item - item from a Net::PMP::CollectionDoc::Items objec
 
 =head1 SYNOPSIS
 
- # TODO
+ # see Net::PMP::CollectionDoc
 
 =head1 METHODS
 
-=head2 item
-
-Internal hashref.
+L<Net::PMP::CollectionDoc::Item> is a subclass of L<Net::PMP::CollectionDoc>. It currently does not implement
+any new methods or functionality. It may disappear in a future release.
 
 =head1 AUTHOR
 
