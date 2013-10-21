@@ -16,6 +16,8 @@ has 'profile' => ( is => 'rw', isa => 'Str' );
 has 'title'   => ( is => 'rw', isa => 'Str', );
 has 'path'    => ( is => 'rw', isa => 'Str', );
 has 'guid'    => ( is => 'rw', isa => 'Str', );
+has 'parent'  => ( is => 'rw', isa => 'Str', );
+has 'child'   => ( is => 'rw', isa => 'Str', );
 
 =head1 NAME
 
@@ -69,6 +71,7 @@ sub commands {
     my $self = shift;
     my $txt  = <<EOF;
 commands:
+    add     --parent <guid> --child <guid>
     create  --profile <profile> --title <title>
     delete  --guid <guid>
     get     --path /path/to/resource
@@ -89,6 +92,13 @@ sub _list_items {
     while ( my $item = $items->next ) {
         printf( "%s: %s [%s] [%s]\n",
             $label, $item->get_title, $item->get_guid, $item->get_profile, );
+        if ( $item->has_items ) {
+            my $iitems = $item->get_items;
+            while ( my $iitem = $iitems->next ) {
+                printf( " contains: %s [%s] [%s]\n",
+                    $iitem->get_title, $iitem->get_guid, $item->get_profile );
+            }
+        }
     }
 }
 
@@ -193,6 +203,30 @@ sub get {
     else {
         dump $doc;
     }
+}
+
+sub add {
+    my $self = shift;
+    my $parent = shift || $self->parent;
+    if ( !$parent ) {
+        die "--parent required for add_item\n";
+    }
+    my $child = shift || $self->child;
+    if ( !$child ) {
+        die "--child required for add_item\n";
+    }
+    my $client     = $self->init_client;
+    my $parent_doc = $client->get_doc_by_guid($parent);
+    my $child_doc  = $client->get_doc_by_guid($child);
+    if ( !$parent_doc ) {
+        die "could not find parent $parent\n";
+    }
+    if ( !$child_doc ) {
+        die "could not find child $child\n";
+    }
+    $parent_doc->add_item($child_doc);
+    $client->save($parent_doc);
+    printf( "child %s saved to parent %s\n", $child, $parent );
 }
 
 =head2 init_client

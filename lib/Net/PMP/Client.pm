@@ -313,11 +313,15 @@ sub put {
     my $uri     = $doc->get_publish_uri( $self->get_doc_edit_link );
     my $request = HTTP::Request->new( PUT => $uri );
     my $token   = $self->get_token();
+    my $body    = $doc->as_json();
+    if ( $self->debug ) {
+        warn "PUT $uri\n$body\n";
+    }
     $request->header( 'Accept'       => 'application/json' );
     $request->header( 'Content-Type' => $self->pmp_content_type );
     $request->header( 'Authorization' =>
             sprintf( '%s %s', $token->token_type, $token->access_token ) );
-    $request->content( $doc->as_json() );
+    $request->content($body);
     my $response = $self->ua->request($request);
 
     # retry if 401
