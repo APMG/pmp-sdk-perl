@@ -174,7 +174,7 @@ sub get_uri {
         }
     }
 
-    return '';    # TODO??
+    return $self->get_self_uri();
 }
 
 =head2 get_publish_uri([I<edit_link>])
@@ -205,6 +205,17 @@ sub get_publish_uri {
     croak "No edit link defined in Doc and none passed to get_publish_uri()";
 }
 
+=head2 get_self_uri
+
+Returns canonical URI for Doc per 'self' link.
+
+=cut
+
+sub get_self_uri {
+    my $self = shift;
+    return $self->links->{self}->[0]->{href};
+}
+
 =head2 set_uri(I<uri>)
 
 Sets the C<href> string for the C<navigation> link
@@ -215,7 +226,19 @@ representing this CollectionDoc.
 sub set_uri {
     my $self = shift;
     my $uri = shift or croak "uri required";
-    $self->links->{navigation}->[0]->{href} = $uri;
+    if ( $self->links and $self->links->{self} ) {
+        $self->links->{self}->[0]->{href} = $uri;
+    }
+    elsif ( $self->links and $self->links->{navigation} ) {
+        for my $link ( @{ $self->links->{navigation} } ) {
+            if ( $link->{rel} eq 'urn:pmp:navigation:self' ) {
+                $link->{href} = $uri;
+            }
+        }
+    }
+    else {
+        $self->{links}->{self}->[0]->{href} = $uri;
+    }
 }
 
 =head2 get_guid
@@ -284,16 +307,22 @@ sub as_hash {
     # items are Docs
     # but top-level links are just convenience.
     # only those in links are authoritative
-    if ( $self->items and @{ $self->items } ) {
+    if ( $self->links and $self->links->{item} and @{ $self->links->{item} } )
+    {
         $hash{links}->{item} = [];
-        for my $item ( @{ $self->items } ) {
-            push @{ $hash{links}->{item} }, $item->as_link_hash;
+        for my $item ( @{ $self->links->{item} } ) {
+            if ( blessed $item) {
+                push @{ $hash{links}->{item} }, $item->as_link_hash;
+            }
+            else {
+                push @{ $hash{links}->{item} }, $item;
+            }
         }
     }
 
     # flesh out links with anything required for save
     $hash{links}->{profile} = $self->links->{profile};
-    if ( $self->get_guid ) {
+    if ( $self->get_uri and !$self->get_self_uri ) {
         $hash{links}->{self} = [ { href => $self->get_uri } ];
     }
 
@@ -313,7 +342,12 @@ sub as_link_hash {
     my %hash = ( href => $self->get_uri() );
     if ( $self->links and $self->links->{item} ) {
         for my $iitem ( @{ $self->links->{item} } ) {
-            push @{ $hash{links}->{item} }, $iitem->as_link_hash();
+            if ( blessed $iitem) {
+                push @{ $hash{links}->{item} }, $iitem->as_link_hash();
+            }
+            else {
+                push @{ $hash{links}->{item} }, $iitem;
+            }
         }
     }
     return \%hash;
@@ -334,14 +368,17 @@ sub as_json {
 
 Shortcut for:
 
-  push @{ $doc->items }, $child;
+  push @{ $doc->links->{item}, $child->as_link_hash;
 
 =cut
 
 sub add_item {
     my $self = shift;
     my $child = shift or croak "child required";
-    push @{ $self->{items} }, $child;
+    if ( !$child->isa('Net::PMP::CollectionDoc') ) {
+        croak "child must be a Net::PMP::CollectionDoc object";
+    }
+    push @{ $self->{links}->{item} }, $child->as_link_hash;
 }
 
 1;

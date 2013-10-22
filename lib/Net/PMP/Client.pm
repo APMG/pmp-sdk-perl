@@ -9,6 +9,7 @@ use JSON;
 use Net::PMP::AuthToken;
 use Net::PMP::CollectionDoc;
 use Net::PMP::Schema;
+use Net::PMP::Credentials;
 
 our $VERSION = '0.01';
 
@@ -37,7 +38,7 @@ sub BUILD {
     $self->{host} =~ s/\/$//;    # no trailing slash
     $self->{_last_token_ts} = 0;
     $self->get_token();               # initiate connection
-    $self->_set_base_doc_config();    # basic introspection
+    $self->_set_home_doc_config();    # basic introspection
     return $self;
 }
 
@@ -216,6 +217,84 @@ sub revoke_token {
     return $self;
 }
 
+=head2 create_credentials( I<params>  )
+
+Instantiates credentials at server. I<params> should be a hash of key/value pairs.
+
+=over 
+
+=item username (required)
+
+=item password (required)
+
+=item scope (default: read)
+
+=item expires (default: 86400)
+
+=item label (default: none)
+
+=back
+
+Returns a Net::PMP::Credentials object.
+
+=cut
+
+sub create_credentials {
+    my $self    = shift;
+    my %params  = @_;
+    my $user    = delete $params{username} or croak "username required";
+    my $pass    = delete $params{password} or croak "password required";
+    my $scope   = delete $params{scope} || 'read';
+    my $expires = delete $params{expires} || 86400;
+    my $label   = delete $params{label} || '';
+    my $uri     = $self->host . '/auth/credentials';
+    my $hash    = encode_base64( join( ':', $user, $pass ), '' );
+    if ($self->debug) {
+        warn "POST with $user:$pass => $hash\n";
+    }
+    my $request = HTTP::Request->new( POST => $uri );
+    $request->header( 'Authorization' => 'Basic ' . $hash );
+    $request->header( 'Accept'        => 'application/json' );
+    $request->header( 'Content-Type' => 'application/x-www-form-urlencoded' );
+
+    # mimic what HTTP::Request::Common does for POST
+    require URI;
+    my $url = URI->new('http:');
+    $url->query_form(
+        scope            => $scope,
+        token_expires_in => $expires,
+        label            => $label
+    );
+    $request->content( $url->query );
+
+    # send request
+    my $response = $self->ua->request($request);
+    if ( $response->code != 200 ) {
+        croak "Invalid response from authn server: " . $response->status_line;
+    }
+    $self->last_response($response);
+
+    # unpack response
+    my $creds;
+    eval { $creds = decode_json( $response->decoded_content ); };
+    if ($@) {
+        croak "Invalid authn response: " . $response->decoded_content;
+    }
+    return Net::PMP::Credentials->new($creds);
+}
+
+=head2 uri_for_profile(I<profile>)
+
+Returns full URI for I<profile>.
+
+=cut
+
+sub uri_for_profile {
+    my $self = shift;
+    my $profile = shift or croak "profile required";
+    return sprintf( "%s/profiles/%s", $self->host, $profile );
+}
+
 =head2 get(I<uri>)
 
 Issues a GET request on I<uri> and decodes the JSON response into a Perl
@@ -273,10 +352,10 @@ sub get {
     return $json;
 }
 
-sub _set_base_doc_config {
+sub _set_home_doc_config {
     my $self = shift;
-    $self->{_base_doc} ||= $self->get_doc();
-    my $edit_links = $self->{_base_doc}->get_links('edit');
+    $self->{_home_doc} ||= $self->get_doc();
+    my $edit_links = $self->{_home_doc}->get_links('edit');
     $self->{_doc_edit_link}
         = $edit_links->rels("urn:pmp:form:documentsave")->[0];
 }
@@ -290,7 +369,7 @@ Retrieves the base doc edit link object for the API.
 sub get_doc_edit_link {
     my $self = shift;
     return $self->{_doc_edit_link} if $self->{_doc_edit_link};
-    $self->_set_base_doc_config();
+    $self->_set_home_doc_config();
     return $self->{_doc_edit_link};
 }
 
@@ -412,8 +491,8 @@ sub get_doc {
     my $uri = shift || $self->host;
 
     # optimize a little for the root doc
-    if ( $uri eq $self->host and $self->{_base_doc} ) {
-        return $self->{_base_doc};
+    if ( $uri eq $self->host and $self->{_home_doc} ) {
+        return $self->{_home_doc};
     }
 
     my $response = $self->get($uri);
@@ -442,7 +521,7 @@ Like get_doc() but takes a I<guid> as argument.
 sub get_doc_by_guid {
     my $self = shift;
     my $guid = shift or croak "guid required";
-    return $self->get_doc( $self->{_base_doc}->query('urn:pmp:hreftpl:docs')
+    return $self->get_doc( $self->{_home_doc}->query('urn:pmp:hreftpl:docs')
             ->as_uri( { guid => $guid } ) );
 }
 
@@ -459,7 +538,7 @@ See L<https://github.com/publicmediaplatform/pmpdocs/wiki/Query-Link-Relation>.
 sub search {
     my $self = shift;
     my $opts = shift or croak "options required";
-    my $uri  = $self->{_base_doc}->query('urn:pmp:query:docs')->as_uri($opts);
+    my $uri  = $self->{_home_doc}->query('urn:pmp:query:docs')->as_uri($opts);
     return $self->get_doc($uri);
 }
 

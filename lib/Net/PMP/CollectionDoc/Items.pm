@@ -23,23 +23,29 @@ sub next {
 
     # grab reference for convenience
     my $i = \$self->{_idx};
-    if ( $count <= ++$$i ) {
+
+    #warn sprintf( "[%d] %s\n", $$i, $items->[$$i] );
+
+    if ( $$i >= $count ) {
         return undef;
     }
+    if ( defined $items->[$$i] and ref( $items->[$$i] ) eq 'HASH' ) {
+        return Net::PMP::CollectionDoc::Item->new( $items->[ $$i++ ] );
+    }
+
+    #warn "[$$i] invalid Items object : " . dump( $items->[$$i] );
     while (
-        $count >= $$i
+        $count > $$i
         and ( !defined $items->[$$i]
             or ref( $items->[$$i] ) ne 'HASH' )
         )
     {
-        warn "[$count] invalid Items object at $$i : "
-            . dump( $items->[$$i] );
-        $$i++;
-        if ( $count <= $$i ) {
+        warn "[$$i] invalid Items object : " . dump( $items->[$$i] );
+        if ( $$i++ >= $count ) {
             return undef;
         }
     }
-    return Net::PMP::CollectionDoc::Item->new( $items->[$$i] );
+    return Net::PMP::CollectionDoc::Item->new( $items->[ $$i++ ] );
 }
 
 sub count {
