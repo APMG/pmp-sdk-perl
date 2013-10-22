@@ -212,15 +212,15 @@ SKIP: {
     # org2 should see doc1 and doc3
     # org3 should see only doc3
     ok( my $org1_res
-            = $org1_client->search( { tags => 'pmp-sdk-testcontent' } ),
+            = $org1_client->search( { tag => 'pmp-sdk-perl-test-authz' } ),
         "org1 search"
     );
     ok( my $org2_res
-            = $org2_client->search( { tags => 'pmp-sdk-testcontent' } ),
+            = $org2_client->search( { tag => 'pmp-sdk-perl-test-authz' } ),
         "org2 search"
     );
     ok( my $org3_res
-            = $org2_client->search( { tags => 'pmp-sdk-testcontent' } ),
+            = $org2_client->search( { tag => 'pmp-sdk-perl-test-authz' } ),
         "org3 search"
     );
     is( $org1_res->has_items, 3, "org1 has 3 items" );
