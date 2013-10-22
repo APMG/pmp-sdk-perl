@@ -231,7 +231,7 @@ Instantiates credentials at server. I<params> should be a hash of key/value pair
 
 =item expires (default: 86400)
 
-=item label (default: none)
+=item label (default: null)
 
 =back
 
@@ -246,7 +246,7 @@ sub create_credentials {
     my $pass    = delete $params{password} or croak "password required";
     my $scope   = delete $params{scope} || 'read';
     my $expires = delete $params{expires} || 86400;
-    my $label   = delete $params{label} || '';
+    my $label   = delete $params{label} || 'null';
     my $uri     = $self->host . '/auth/credentials';
     my $hash    = encode_base64( join( ':', $user, $pass ), '' );
     if ($self->debug) {

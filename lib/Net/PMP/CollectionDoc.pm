@@ -305,7 +305,7 @@ sub as_hash {
     }
 
     # items are Docs
-    # but top-level links are just convenience.
+    # but top-level "items" are just convenience.
     # only those in links are authoritative
     if ( $self->links and $self->links->{item} and @{ $self->links->{item} } )
     {
@@ -324,6 +324,12 @@ sub as_hash {
     $hash{links}->{profile} = $self->links->{profile};
     if ( $self->get_uri and !$self->get_self_uri ) {
         $hash{links}->{self} = [ { href => $self->get_uri } ];
+    }
+    my @write_links = qw( permissions collection alternate );
+    for my $link (@write_links) {
+        if ( $self->links and $self->links->{$link} ) {
+            $hash{links}->{$link} = $self->links->{$link};
+        }
     }
 
     return \%hash;

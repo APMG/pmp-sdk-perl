@@ -23,10 +23,10 @@ SKIP: {
     );
 
     # clean up any previous false runs
-    for my $profile (qw( story organization group )) {
+    for my $profile (qw( story organization user group )) {
         my $authz_test = $client->search(
             {   profile => $profile,
-                text    => 'pmp-sdk-perl',
+                text    => 'pmp_sdk_perl',
                 limit   => 100,
             }
         );
@@ -39,6 +39,10 @@ SKIP: {
         }
     }
 
+    if ( $ENV{PMP_CLIENT_CLEAN} ) {
+        exit(0);
+    }
+
     # create 3 orgs
     my $org1_pass = Net::PMP::CollectionDoc->create_guid();
     my $org2_pass = Net::PMP::CollectionDoc->create_guid();
@@ -46,16 +50,16 @@ SKIP: {
     ok( my $org1 = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
-                tags  => [qw( pmp-sdk-perl-test-authz )],
-                title => 'pmp-sdk-perl test org1',
+                tags  => [qw( pmp_sdk_perl_test_authz )],
+                title => 'pmp_sdk_perl test org1',
                 auth  => {
-                    user     => 'pmp-sdk-perl-org1',
+                    user     => 'pmp_sdk_perl-org1',
                     password => $org1_pass,
+                    scope    => 'write',
                 },
             },
             links => {
-                profile =>
-                    [ { href => $client->uri_for_profile('organization') } ]
+                profile => [ { href => $client->uri_for_profile('user') } ]
             },
         ),
         "create org1"
@@ -64,16 +68,15 @@ SKIP: {
     ok( my $org2 = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
-                tags  => [qw( pmp-sdk-perl-test-authz )],
-                title => 'pmp-sdk-perl test org2',
+                tags  => [qw( pmp_sdk_perl_test_authz )],
+                title => 'pmp_sdk_perl test org2',
                 auth  => {
-                    user     => 'pmp-sdk-perl-org2',
+                    user     => 'pmp_sdk_perl-org2',
                     password => $org2_pass,
                 },
             },
             links => {
-                profile =>
-                    [ { href => $client->uri_for_profile('organization') } ]
+                profile => [ { href => $client->uri_for_profile('user') } ]
             },
         ),
         "create org2"
@@ -82,16 +85,15 @@ SKIP: {
     ok( my $org3 = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
-                tags  => [qw( pmp-sdk-perl-test-authz )],
-                title => 'pmp-sdk-perl test org3',
+                tags  => [qw( pmp_sdk_perl_test_authz )],
+                title => 'pmp_sdk_perl test org3',
                 auth  => {
-                    user     => 'pmp-sdk-perl-org3',
+                    user     => 'pmp_sdk_perl-org3',
                     password => $org3_pass,
                 },
             },
             links => {
-                profile =>
-                    [ { href => $client->uri_for_profile('organization') } ]
+                profile => [ { href => $client->uri_for_profile('user') } ]
             },
         ),
         "create org3"
@@ -102,8 +104,8 @@ SKIP: {
     ok( my $group = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
-                title => 'pmp-sdk-perl permission group',
-                tags  => [qw( pmp-sdk-perl-test-authz )],
+                title => 'pmp_sdk_perl permission group',
+                tags  => [qw( pmp_sdk_perl_test_authz )],
             },
             links => {
                 profile => [ { href => $client->uri_for_profile('group') } ]
@@ -119,8 +121,8 @@ SKIP: {
     ok( my $sample_doc1 = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
-                tags  => [qw( pmp-sdk-perl-test-authz )],
-                title => 'i am a test document one',
+                tags => [qw( pmp_sdk_perl_test_authz pmp_sdk_perl_test_doc )],
+                title => 'pmp_sdk_perl i am a test document one',
             },
             links => {
                 profile => [ { href => $client->uri_for_profile('story') } ],
@@ -135,8 +137,8 @@ SKIP: {
     ok( my $sample_doc2 = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
-                tags  => [qw( pmp-sdk-perl-test-authz )],
-                title => 'i am a test document two',
+                tags => [qw( pmp_sdk_perl_test_authz pmp_sdk_perl_test_doc )],
+                title => 'pmp_sdk_perl i am a test document two',
             },
             links => {
                 profile => [ { href => $client->uri_for_profile('story') } ],
@@ -155,8 +157,8 @@ SKIP: {
     ok( my $sample_doc3 = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
-                tags  => [qw( pmp-sdk-perl-test-authz )],
-                title => 'i am a test document three',
+                tags => [qw( pmp_sdk_perl_test_authz pmp_sdk_perl_test_doc )],
+                title => 'pmp_sdk_perl i am a test document three',
             },
             links => {
                 profile => [ { href => $client->uri_for_profile('story') } ]
@@ -186,6 +188,9 @@ SKIP: {
         ),
         "create org3 credentials"
     );
+
+    sleep(2);
+
     ok( my $org1_client = Net::PMP::Client->new(
             id     => $org1_creds->client_id,
             secret => $org1_creds->client_secret,
@@ -212,24 +217,52 @@ SKIP: {
     # org2 should see doc1 and doc3
     # org3 should see only doc3
     ok( my $org1_res
-            = $org1_client->search( { tag => 'pmp-sdk-perl-test-authz' } ),
+            = $org1_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
         "org1 search"
     );
     ok( my $org2_res
-            = $org2_client->search( { tag => 'pmp-sdk-perl-test-authz' } ),
+            = $org2_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
         "org2 search"
     );
     ok( my $org3_res
-            = $org2_client->search( { tag => 'pmp-sdk-perl-test-authz' } ),
+            = $org2_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
         "org3 search"
     );
     is( $org1_res->has_items, 3, "org1 has 3 items" );
     is( $org2_res->has_items, 2, "org2 has 2 items" );
     is( $org3_res->has_items, 1, "org3 has 1 item" );
 
-    diag( dump $org1_res );
-    diag( dump $org2_res );
-    diag( dump $org3_res );
+    #diag( dump $org1_res );
+    #diag( dump $org2_res );
+    #diag( dump $org3_res );
 
+    ok( my $org1_res_items = $org1_res->get_items(),
+        'get org1 search items' );
+    ok( my $org2_res_items = $org2_res->get_items(),
+        'get org2 search items' );
+    ok( my $org3_res_items = $org3_res->get_items(),
+        'get org3 search items' );
+
+    while ( my $org1_result = $org1_res_items->next ) {
+        diag(
+            sprintf( "org1: [%s] %s",
+                $org1_result->get_title(),
+                $org1_result->get_uri() )
+        );
+    }
+    while ( my $org2_result = $org2_res_items->next ) {
+        diag(
+            sprintf( "org2: [%s] %s",
+                $org2_result->get_title(),
+                $org2_result->get_uri() )
+        );
+    }
+    while ( my $org3_result = $org3_res_items->next ) {
+        diag(
+            sprintf( "org3: [%s] %s",
+                $org3_result->get_title(),
+                $org3_result->get_uri() )
+        );
+    }
 }
 
