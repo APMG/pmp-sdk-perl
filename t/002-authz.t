@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 59;
+use Test::More tests => 40;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Client');
@@ -9,7 +9,7 @@ use_ok('Net::PMP::CollectionDoc');
 
 SKIP: {
     if ( !$ENV{PMP_CLIENT_ID} or !$ENV{PMP_CLIENT_SECRET} ) {
-        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 57;
+        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 38;
     }
 
     # create client
@@ -243,25 +243,28 @@ SKIP: {
     ok( my $org3_res_items = $org3_res->get_items(),
         'get org3 search items' );
 
-    while ( my $org1_result = $org1_res_items->next ) {
-        diag(
-            sprintf( "org1: [%s] %s",
-                $org1_result->get_title(),
-                $org1_result->get_uri() )
+    while ( my $r = $org1_res_items->next ) {
+        diag( sprintf( "org1: [%s] %s", $r->get_title(), $r->get_uri() ) );
+        like(
+            $r->get_title,
+            qr/i am a test document (one|two|three)$/,
+            "org1 result for " . $r->get_title()
         );
     }
-    while ( my $org2_result = $org2_res_items->next ) {
-        diag(
-            sprintf( "org2: [%s] %s",
-                $org2_result->get_title(),
-                $org2_result->get_uri() )
+    while ( my $r = $org2_res_items->next ) {
+        diag( sprintf( "org2: [%s] %s", $r->get_title(), $r->get_uri() ) );
+        like(
+            $r->get_title,
+            qr/i am a test document (one|three)$/,
+            "org2 result for " . $r->get_title()
         );
     }
-    while ( my $org3_result = $org3_res_items->next ) {
-        diag(
-            sprintf( "org3: [%s] %s",
-                $org3_result->get_title(),
-                $org3_result->get_uri() )
+    while ( my $r = $org3_res_items->next ) {
+        diag( sprintf( "org3: [%s] %s", $r->get_title(), $r->get_uri() ) );
+        like(
+            $r->get_title,
+            qr/i am a test document three$/,
+            "org3 result for " . $r->get_title()
         );
     }
 }
