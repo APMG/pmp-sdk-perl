@@ -11,6 +11,19 @@ To install this module, run the following commands:
 	make test
 	make install
 
+Note that some of the unit tests will be skipped unless the following 
+environment variables are set:
+
+ PMP_CLIENT_ID
+ PMP_CLIENT_SECRET
+
+and optionally:
+
+ PMP_CLIENT_HOST
+ PMP_CLIENT_DEBUG
+
+If not set, the unit tests against the server API are skipped.
+
 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
