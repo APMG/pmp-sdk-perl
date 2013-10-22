@@ -100,7 +100,7 @@ SKIP: {
     );
     ok( $client->save($org3), "save org3" );
 
-    # create group
+    # create groups
     ok( my $group = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
@@ -116,6 +116,20 @@ SKIP: {
     ok( $group->add_item($org1), "add org1 to group" );
     ok( $group->add_item($org2), "add org2 to group" );
     ok( $client->save($group),   "save group" );
+    ok( my $group2 = Net::PMP::CollectionDoc->new(
+            version    => $client->get_doc->version,
+            attributes => {
+                title => 'pmp_sdk_perl permission group2',
+                tags  => [qw( pmp_sdk_perl_test_authz )],
+            },
+            links => {
+                profile => [ { href => $client->uri_for_profile('group') } ]
+            },
+        ),
+        "create group2"
+    );
+    ok( $group2->add_item($org1), "add org1 to group2" );
+    ok( $client->save($group2),   "save group2" );
 
     # add fixture docs
     ok( my $sample_doc1 = Net::PMP::CollectionDoc->new(
@@ -147,6 +161,7 @@ SKIP: {
                         operation => 'read',
                         blacklist => \1,
                     },
+                    { href => $group2->get_uri(), operation => 'read', },
                 ],
             },
         ),
@@ -167,6 +182,27 @@ SKIP: {
         "create new sample doc3"
     );
     ok( $client->save($sample_doc3), "save sample doc3" );
+    ok( my $private_doc = Net::PMP::CollectionDoc->new(
+            version    => $client->get_doc->version,
+            attributes => {
+                tags => [qw( pmp_sdk_perl_test_authz pmp_sdk_perl_test_doc )],
+                title => 'pmp_sdk_perl i am a test document private',
+            },
+            links => {
+                profile => [
+
+                    # special profile
+                    {   "href"      => "http://api.pmp.io/groups/empty",
+                        "operation" => "read",
+                        "blacklist" => \1,
+                    }
+                ]
+            },
+        ),
+        "create new sample doc3"
+    );
+    # TODO fails with 400 {"error":{"title":"Failed to get profile document"}}
+    #ok( $client->save($private_doc), "save private doc" );
 
     # fixtures all in place
     # now create credentials and client for orgs
@@ -189,7 +225,7 @@ SKIP: {
         "create org3 credentials"
     );
 
-    sleep(2);
+    sleep(2);    # give 202 responses time to catch up
 
     ok( my $org1_client = Net::PMP::Client->new(
             id     => $org1_creds->client_id,
