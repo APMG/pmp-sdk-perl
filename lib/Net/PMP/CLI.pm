@@ -19,6 +19,7 @@ has 'guid'    => ( is => 'rw', isa => 'Str', );
 has 'parent'  => ( is => 'rw', isa => 'Str', );
 has 'child'   => ( is => 'rw', isa => 'Str', );
 has 'tag'     => ( is => 'rw', isa => 'Str', );
+has 'tags'    => ( is => 'rw', isa => 'ArrayRef', );
 has 'query'   => ( is => 'rw', isa => 'HashRef', );
 
 =head1 NAME
@@ -73,9 +74,11 @@ sub commands {
     my $self = shift;
     my $txt  = <<EOF;
 commands:
+    search  --query tag=foo --query text=bar --query limit=100
     add     --parent <guid> --child <guid>
-    create  --profile <profile> --title <title>
+    create  --profile <profile> --title <title> --tags foo --tags bar
     delete  --guid <guid>
+    delete_by_tag --tag foo
     get     --path /path/to/resource
     groups
     users
@@ -133,6 +136,7 @@ sub create {
     my $self    = shift;
     my $profile = $self->profile or die "--profile required for create\n";
     my $title   = $self->title or die "--title required for create\n";
+    my $tags    = $self->tags || [];
     my $client  = $self->init_client;
 
     # verify profile first
@@ -142,7 +146,7 @@ sub create {
     }
     my $doc = Net::PMP::CollectionDoc->new(
         version    => $client->get_doc->version,
-        attributes => { title => $title, },
+        attributes => { title => $title, tags => $tags, },
         links      => {
             profile => [ { href => $client->host . '/profiles/' . $profile } ]
         },
@@ -174,9 +178,16 @@ sub delete {
     }
 }
 
+=head2 delete_by_tag([I<tag>])
+
+Deletes all resources that match a search for tag.
+
+=cut
+
 sub delete_by_tag {
-    my $self   = shift;
-    my $tag    = $self->tag or die "--tag required for delete_by_tag\n";
+    my $self = shift;
+    my $tag = shift || $self->tag;
+    defined $tag or die "--tag required for delete_by_tag\n";
     my $client = $self->init_client;
 
     # TODO arbitrary limit
