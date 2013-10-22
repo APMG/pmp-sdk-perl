@@ -116,6 +116,8 @@ SKIP: {
     ok( $group->add_item($org1), "add org1 to group" );
     ok( $group->add_item($org2), "add org2 to group" );
     ok( $client->save($group),   "save group" );
+
+    # group2 with just org1
     ok( my $group2 = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
@@ -130,6 +132,37 @@ SKIP: {
     );
     ok( $group2->add_item($org1), "add org1 to group2" );
     ok( $client->save($group2),   "save group2" );
+
+    # group3 with just org2
+    ok( my $group3 = Net::PMP::CollectionDoc->new(
+            version    => $client->get_doc->version,
+            attributes => {
+                title => 'pmp_sdk_perl permission group3',
+                tags  => [qw( pmp_sdk_perl_test_authz )],
+            },
+            links => {
+                profile => [ { href => $client->uri_for_profile('group') } ]
+            },
+        ),
+        "create group3"
+    );
+    ok( $group3->add_item($org2), "add org2 to group3" );
+    ok( $client->save($group3),   "save group3" );
+
+    # create an empty group
+    ok( my $empty_group = Net::PMP::CollectionDoc->new(
+            version    => $client->get_doc->version,
+            attributes => {
+                title => 'pmp_sdk_perl permission group empty',
+                tags  => [qw( pmp_sdk_perl_test_authz )],
+            },
+            links => {
+                profile => [ { href => $client->uri_for_profile('group') } ]
+            },
+        ),
+        "create empty group"
+    );
+    ok( $client->save($empty_group), "save empty_group" );
 
     # add fixture docs
     ok( my $sample_doc1 = Net::PMP::CollectionDoc->new(
@@ -157,7 +190,7 @@ SKIP: {
             links => {
                 profile => [ { href => $client->uri_for_profile('story') } ],
                 permissions => [
-                    {   href      => $group->get_uri(),
+                    {   href      => $group3->get_uri(),
                         operation => 'read',
                         blacklist => \1,
                     },
@@ -191,17 +224,23 @@ SKIP: {
             links => {
                 profile => [
 
-                    # special profile
-                    {   "href"      => "http://api.pmp.io/groups/empty",
-                        "operation" => "read",
-                        "blacklist" => \1,
+    # special profile
+    # TODO fails with 400 {"error":{"title":"Failed to get profile document"}}
+    #{   "href"      => "http://api.pmp.io/groups/empty",
+    #    "operation" => "read",
+    #    "blacklist" => \1,
+    #}
+                    {   href      => $empty_group->get_uri(),
+                        operation => 'read',
+                        blacklist => \1,
                     }
                 ]
             },
         ),
-        "create new sample doc3"
+        "create new private doc"
     );
-    # TODO fails with 400 {"error":{"title":"Failed to get profile document"}}
+
+    # causes 500 error
     #ok( $client->save($private_doc), "save private doc" );
 
     # fixtures all in place
@@ -249,9 +288,9 @@ SKIP: {
         "create org3 client"
     );
 
-    # org1 should see all docs
-    # org2 should see doc1 and doc3
-    # org3 should see only doc3
+    # org1 should see doc1, doc2, doc3
+    # org2 should see doc1, doc3
+    # org3 should see doc3
     ok( my $org1_res
             = $org1_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
         "org1 search"
