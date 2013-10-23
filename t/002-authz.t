@@ -150,6 +150,7 @@ SKIP: {
     ok( $client->save($group3),   "save group3" );
 
     # create an empty group
+    # TODO currently not used
     ok( my $empty_group = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
@@ -215,6 +216,8 @@ SKIP: {
         "create new sample doc3"
     );
     ok( $client->save($sample_doc3), "save sample doc3" );
+
+    # private doc should be visible only to original $client
     ok( my $private_doc = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
@@ -222,26 +225,18 @@ SKIP: {
                 title => 'pmp_sdk_perl i am a test document private',
             },
             links => {
-                profile => [
-
-    # special profile
-    # TODO fails with 400 {"error":{"title":"Failed to get profile document"}}
-    #{   "href"      => "http://api.pmp.io/groups/empty",
-    #    "operation" => "read",
-    #    "blacklist" => \1,
-    #}
-                    {   href      => $empty_group->get_uri(),
-                        operation => 'read',
-                        blacklist => \1,
+                profile => [ { href => $client->uri_for_profile('story') } ],
+                permissions => [
+                    {   "href"      => "http://api.pmp.io/groups/empty",
+                        "operation" => "read",
+                        "blacklist" => \1,
                     }
                 ]
             },
         ),
         "create new private doc"
     );
-
-    # causes 500 error
-    #ok( $client->save($private_doc), "save private doc" );
+    ok( $client->save($private_doc), "save private doc" );
 
     # fixtures all in place
     # now create credentials and client for orgs
