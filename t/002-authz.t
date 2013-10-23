@@ -193,7 +193,7 @@ SKIP: {
                 permission => [
                     {   href      => $group3->get_uri(),
                         operation => 'read',
-                        blacklist => 'true',
+                        blacklist => \1,
                     },
                     { href => $group2->get_uri(), operation => 'read', },
                 ],
@@ -229,7 +229,7 @@ SKIP: {
                 permission => [
                     {   "href"      => "http://api.pmp.io/groups/empty",
                         "operation" => "read",
-                        "blacklist" => 'true',
+                        "blacklist" => \1,
                     }
                 ]
             },
