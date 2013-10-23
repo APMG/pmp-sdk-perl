@@ -1,15 +1,34 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 40;
+use Test::More tests => 50;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Client');
 use_ok('Net::PMP::CollectionDoc');
 
+sub clean_up_test_docs {
+    my $client = shift or die "client required";
+    for my $profile (qw( story organization user group )) {
+        my $authz_test = $client->search(
+            {   profile => $profile,
+                text    => 'pmp_sdk_perl',
+                limit   => 100,
+            }
+        );
+        if ($authz_test) {
+            my $prev_test = $authz_test->get_items();
+            while ( my $item = $prev_test->next ) {
+                diag( "cleaning up $profile " . $item->get_uri );
+                $client->delete($item);
+            }
+        }
+    }
+}
+
 SKIP: {
     if ( !$ENV{PMP_CLIENT_ID} or !$ENV{PMP_CLIENT_SECRET} ) {
-        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 38;
+        skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 48;
     }
 
     # create client
@@ -23,22 +42,7 @@ SKIP: {
     );
 
     # clean up any previous false runs
-    for my $profile (qw( story organization user group )) {
-        my $authz_test = $client->search(
-            {   profile => $profile,
-                text    => 'pmp_sdk_perl',
-                limit   => 100,
-            }
-        );
-        if ($authz_test) {
-            my $prev_test = $authz_test->get_items();
-            while ( my $item = $prev_test->next ) {
-                diag( "cleaning up " . $item->get_uri );
-                $client->delete($item);
-            }
-        }
-    }
-
+    clean_up_test_docs($client);
     if ( $ENV{PMP_CLIENT_CLEAN} ) {
         exit(0);
     }
@@ -150,7 +154,6 @@ SKIP: {
     ok( $client->save($group3),   "save group3" );
 
     # create an empty group
-    # TODO currently not used
     ok( my $empty_group = Net::PMP::CollectionDoc->new(
             version    => $client->get_doc->version,
             attributes => {
@@ -227,9 +230,8 @@ SKIP: {
             links => {
                 profile => [ { href => $client->uri_for_profile('story') } ],
                 permission => [
-                    {   "href"      => "http://api.pmp.io/groups/empty",
+                    {   "href"      => $empty_group->get_uri(),
                         "operation" => "read",
-                        "blacklist" => \1,
                     }
                 ]
             },
@@ -295,7 +297,7 @@ SKIP: {
         "org2 search"
     );
     ok( my $org3_res
-            = $org2_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
+            = $org3_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
         "org3 search"
     );
     is( $org1_res->has_items, 3, "org1 has 3 items" );
@@ -337,5 +339,7 @@ SKIP: {
             "org3 result for " . $r->get_title()
         );
     }
+
+    clean_up_test_docs($client);
 }
 
