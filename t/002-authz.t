@@ -174,7 +174,7 @@ SKIP: {
             },
             links => {
                 profile => [ { href => $client->uri_for_profile('story') } ],
-                permissions =>
+                permission =>
                     [ { href => $group->get_uri(), operation => 'read', }, ],
             },
         ),
@@ -190,7 +190,7 @@ SKIP: {
             },
             links => {
                 profile => [ { href => $client->uri_for_profile('story') } ],
-                permissions => [
+                permission => [
                     {   href      => $group3->get_uri(),
                         operation => 'read',
                         blacklist => \1,
@@ -226,7 +226,7 @@ SKIP: {
             },
             links => {
                 profile => [ { href => $client->uri_for_profile('story') } ],
-                permissions => [
+                permission => [
                     {   "href"      => "http://api.pmp.io/groups/empty",
                         "operation" => "read",
                         "blacklist" => \1,

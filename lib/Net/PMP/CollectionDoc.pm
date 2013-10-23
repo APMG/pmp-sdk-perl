@@ -325,7 +325,7 @@ sub as_hash {
     if ( $self->get_uri and !$self->get_self_uri ) {
         $hash{links}->{self} = [ { href => $self->get_uri } ];
     }
-    my @write_links = qw( permissions collection alternate );
+    my @write_links = qw( permission collection alternate );
     for my $link (@write_links) {
         if ( $self->links and $self->links->{$link} ) {
             $hash{links}->{$link} = $self->links->{$link};
