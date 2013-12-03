@@ -70,6 +70,12 @@ sub run {
 
 }
 
+=head2 commands
+
+Returns usage text for available commands.
+
+=cut
+
 sub commands {
     my $self = shift;
     my $txt  = <<EOF;
@@ -110,6 +116,12 @@ sub _list_items {
         }
     }
 }
+
+=head2 search( I<query> )
+
+Executes search for I<query> and prints results to stdout.
+
+=cut
 
 sub search {
     my $self   = shift;
@@ -252,6 +264,12 @@ sub get {
         dump $doc;
     }
 }
+
+=head2 add( I<parent_doc>, I<child_doc> )
+
+Save I<child_doc> as child of I<parent_doc>.
+
+=cut
 
 sub add {
     my $self = shift;
