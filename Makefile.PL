@@ -7,15 +7,17 @@ use 5.008003;
 name 'Net-PMP';
 all_from 'lib/Net/PMP.pm';
 
-requires 'Mouse'                => 0;
-requires 'MouseX::SimpleConfig' => 0;
-requires 'MouseX::Getopt'       => 0;
-requires 'Test::More'           => 0;
-requires 'JSON'                 => 2.0;
-requires 'LWP::UserAgent'       => 0;
-requires 'Data::Dump'           => 0;
-requires 'URI::Template'        => 0;
-requires 'UUID::Tiny'           => 0;
+requires 'Mouse'                     => 0;
+requires 'MouseX::SimpleConfig'      => 0;
+requires 'MouseX::Getopt'            => 0;
+requires 'Test::More'                => 0;
+requires 'JSON'                      => 2.0;
+requires 'LWP::UserAgent'            => 0;
+requires 'Data::Dump'                => 0;
+requires 'URI::Template'             => 0;
+requires 'UUID::Tiny'                => 0;
+requires 'DateTime::Format::ISO8601' => 0;
+requires 'Data::Validate::URI'       => 0;
 
 perl_version '5.8.3';
 license 'MIT';
