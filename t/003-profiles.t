@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 18;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Profile');
@@ -86,3 +86,47 @@ ok( my $audio = Net::PMP::Profile::Audio->new(
     ),
     "audio constructor"
 );
+
+eval {
+    my $audio = Net::PMP::Profile::Audio->new(
+        title     => 'bad audio enclosure',
+        enclosure => 'foo'
+    );
+};
+
+like(
+    $@,
+    qr/Validation failed for 'ArrayRefMediaEnclosure'/,
+    "bad audio enclosure - string"
+);
+
+ok( my $audio_single_enclosure = Net::PMP::Profile::Audio->new(
+        title => 'bad audio enclosure',
+        enclosure =>
+            { href => 'http://mpr.org/some/audio.mp3', type => 'audio/mpeg' },
+    ),
+    "audio constructor with single enclosure"
+);
+
+eval {
+    my $audio = Net::PMP::Profile::Audio->new(
+        title => 'bad audio enclosure',
+        enclosure =>
+            [ { href => 'http://mpr.org/some/audio.mp3', type => 'foo' }, ],
+    );
+};
+
+like(
+    $@,
+    qr/does not appear to be a valid media type/,
+    "bad audio enclosure - content type"
+);
+
+eval {
+    my $audio = Net::PMP::Profile::Audio->new(
+        title     => 'bad audio enclosure',
+        enclosure => [ { href => 'audio.mp3', type => 'audio/mpeg' }, ],
+    );
+};
+
+like( $@, qr/does not appear to be a href/, "bad audio enclosure - href" );
