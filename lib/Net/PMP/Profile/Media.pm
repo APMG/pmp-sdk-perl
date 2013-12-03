@@ -1,12 +1,34 @@
-package Net::PMP::Profile::Story;
+package Net::PMP::Profile::Media;
 use Mouse;
 extends 'Net::PMP::Profile';
+use Net::PMP::MediaEnclosure;
 
 our $VERSION = '0.01';
 
-has 'teaser'           => ( is => 'rw', isa => 'Str', );
-has 'contentencoded'   => ( is => 'rw', isa => 'Str', );
-has 'contenttemplated' => ( is => 'rw', isa => 'Str', );
+{
+    use Mouse::Util::TypeConstraints;
+    my $coerce_enclosure = sub {
+        if ( ref( $_[0] ) eq 'HASH' ) {
+            return Net::PMP::MediaEnclosure->new( $_[0] );
+        }
+        else { return $_[0]; }
+    };
+    subtype 'MediaEnclosure' => as class_type('Net::PMP::MediaEnclosure');
+    coerce 'MediaEnclosure' => from 'Object' => via {$_} => from 'HashRef' =>
+        via { Net::PMP::MediaEnclosure->new($_) };
+    subtype 'ArrayRefMediaEnclosure' => as 'ArrayRef[MediaEnclosure]';
+    coerce 'ArrayRefMediaEnclosure' => from 'ArrayRef[HashRef]' => via {
+        [ map { $coerce_enclosure->($_) } @$_ ];
+    } => from 'HashRef' => via { [ $coerce_enclosure->($_) ] };
+    no Mouse::Util::TypeConstraints;
+}
+
+has 'enclosure' => (
+    is       => 'rw',
+    isa      => 'ArrayRefMediaEnclosure',
+    required => 1,
+    coerce   => 1,
+);
 
 1;
 
@@ -14,14 +36,14 @@ __END__
 
 =head1 NAME
 
-Net::PMP::Profile - Base Content Profile for PMP CollectionDoc
+Net::PMP::Profile::Media - Rich Media Profile for PMP CollectionDoc
 
 =head1 SYNOPSIS
 
  use Net::PMP;
- use Net::PMP::Profile;
+ use Net::PMP::Profile::Media;
  
- my $profile_doc = Net::PMP::Profile->new(
+ my $profile_doc = Net::PMP::Profile::Media->new(
      title     => 'I am A Title',
      published => '2013-12-03T12:34:56.789Z',
      valid     => {
@@ -31,9 +53,9 @@ Net::PMP::Profile - Base Content Profile for PMP CollectionDoc
      byline    => 'By: John Writer and Nancy Author',
      description => 'This is a summary of the document.',
      tags      => [qw( foo bar baz )],
-     teaser    => 'important story to read here!',
-     contentencoded => $html,
-     contenttemplated => $templated_html,
+     enclosure => [
+         
+     ],
  );
 
  # instantiate a client
@@ -50,24 +72,16 @@ Net::PMP::Profile - Base Content Profile for PMP CollectionDoc
 
 =head1 DESCRIPTION
 
-Net::PMP::Profile::Story implements the CollectionDoc fields for the PMP Story Profile
-L<https://github.com/publicmediaplatform/pmpdocs/wiki/Story-Profile>.
+Net::PMP::Profile::Media implements the CollectionDoc fields for the PMP Rich Media Profile
+L<https://github.com/publicmediaplatform/pmpdocs/wiki/Rich-Media-Profiles>.
 
 =head1 METHODS
 
 This class extends L<Net::PMP::Profile>. Only new or overridden methods are documented here.
 
-=head2 teaser
+=head2 enclosure
 
-Optional brief summary.
-
-=head2 contentencoded
-
-Optional full HTML-encoded string.
-
-=head2 contenttemplated
-
-Optional content with placeholders for rich media assets.
+Required array of hashrefs or Net::PMP::MediaEnclosure objects representing the binary file of the media asset.
 
 =head1 AUTHOR
 

@@ -1,10 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 13;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Profile');
+use_ok('Net::PMP::Profile::Story');
+use_ok('Net::PMP::Profile::Media');
+use_ok('Net::PMP::Profile::Audio');
+use_ok('Net::PMP::Profile::Video');
+use_ok('Net::PMP::Profile::Image');
 use_ok('Net::PMP::CollectionDoc');
 
 ok( my $profile_doc = Net::PMP::Profile->new(
@@ -70,3 +75,14 @@ eval {
 };
 
 like( $@, qr/does not appear to be an array of hrefs/, "bad author href" );
+
+# media
+ok( my $audio = Net::PMP::Profile::Audio->new(
+        title       => 'i am a piece of audio',
+        description => 'hear me',
+        enclosure   => [
+            { href => 'http://mpr.org/some/audio.mp3', type => 'audio/mpeg' },
+        ]
+    ),
+    "audio constructor"
+);
