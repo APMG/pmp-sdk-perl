@@ -95,7 +95,7 @@ Hashref of arbitrary metadata.
 
 =head2 crop
 
-Image label string.
+Image semantic identifier string.
 
 =head2 width
 

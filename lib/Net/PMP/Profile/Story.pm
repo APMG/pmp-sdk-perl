@@ -8,20 +8,22 @@ has 'teaser'           => ( is => 'rw', isa => 'Str', );
 has 'contentencoded'   => ( is => 'rw', isa => 'Str', );
 has 'contenttemplated' => ( is => 'rw', isa => 'Str', );
 
+sub get_profile_url {'http://api.pmp.io/profiles/story'}
+
 1;
 
 __END__
 
 =head1 NAME
 
-Net::PMP::Profile - Base Content Profile for PMP CollectionDoc
+Net::PMP::Profile::Story - Story Profile for PMP CollectionDoc
 
 =head1 SYNOPSIS
 
  use Net::PMP;
- use Net::PMP::Profile;
+ use Net::PMP::Profile::Story;
  
- my $profile_doc = Net::PMP::Profile->new(
+ my $story = Net::PMP::Profile::Story->new(
      title     => 'I am A Title',
      published => '2013-12-03T12:34:56.789Z',
      valid     => {
@@ -44,7 +46,7 @@ Net::PMP::Profile - Base Content Profile for PMP CollectionDoc
  ); 
 
  # save doc
- $client->save($profile_doc);
+ $client->save($story);
  
 =cut
 
@@ -68,6 +70,10 @@ Optional full HTML-encoded string.
 =head2 contenttemplated
 
 Optional content with placeholders for rich media assets.
+
+=head2 get_profile_url
+
+Returns a string for the PMP profile's URL.
 
 =head1 AUTHOR
 

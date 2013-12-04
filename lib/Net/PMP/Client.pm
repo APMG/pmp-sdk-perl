@@ -249,7 +249,7 @@ sub create_credentials {
     my $label   = delete $params{label} || 'null';
     my $uri     = $self->host . '/auth/credentials';
     my $hash    = encode_base64( join( ':', $user, $pass ), '' );
-    if ($self->debug) {
+    if ( $self->debug ) {
         warn "POST with $user:$pass => $hash\n";
     }
     my $request = HTTP::Request->new( POST => $uri );
@@ -553,6 +553,9 @@ put() internally.
 sub save {
     my $self = shift;
     my $doc = shift or croak "doc object required";
+    if ( blessed $doc and $doc->isa('Net::PMP::Profile') ) {
+        $doc = $doc->as_doc();
+    }
     if ( !blessed $doc or !$doc->isa('Net::PMP::CollectionDoc') ) {
         croak "doc must be a Net::PMP::CollectionDoc object";
     }

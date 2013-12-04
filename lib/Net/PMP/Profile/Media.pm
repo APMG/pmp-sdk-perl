@@ -30,6 +30,8 @@ has 'enclosure' => (
     coerce   => 1,
 );
 
+sub get_profile_url {'http://api.pmp.io/profiles/media'}
+
 1;
 
 __END__
@@ -43,7 +45,7 @@ Net::PMP::Profile::Media - Rich Media Profile for PMP CollectionDoc
  use Net::PMP;
  use Net::PMP::Profile::Media;
  
- my $profile_doc = Net::PMP::Profile::Media->new(
+ my $media = Net::PMP::Profile::Media->new(
      title     => 'I am A Title',
      published => '2013-12-03T12:34:56.789Z',
      valid     => {
@@ -66,7 +68,7 @@ Net::PMP::Profile::Media - Rich Media Profile for PMP CollectionDoc
  ); 
 
  # save doc
- $client->save($profile_doc);
+ $client->save($media);
  
 =cut
 
@@ -82,6 +84,10 @@ This class extends L<Net::PMP::Profile>. Only new or overridden methods are docu
 =head2 enclosure
 
 Required array of hashrefs or Net::PMP::MediaEnclosure objects representing the binary file of the media asset.
+
+=head2 get_profile_url
+
+Returns a string for the PMP profile's URL.
 
 =head1 AUTHOR
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 21;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Profile');
@@ -75,6 +75,26 @@ eval {
 };
 
 like( $@, qr/does not appear to be an array of hrefs/, "bad author href" );
+
+ok( my $coll_doc = $profile_doc->as_doc(), "profile->as_doc" );
+ok( $coll_doc->isa('Net::PMP::CollectionDoc'), "coll_doc isa CollectionDoc" );
+
+#diag( $profile_doc->published );
+is_deeply(
+    $coll_doc->attributes,
+    {   title       => $profile_doc->title,
+        published   => $profile_doc->published,
+        valid       => $profile_doc->valid,
+        byline      => $profile_doc->byline,
+        description => $profile_doc->description,
+        tags        => $profile_doc->tags,
+        hreflang    => $profile_doc->hreflang,
+    },
+    "coll_doc attributes"
+);
+
+#diag(dump( $coll_doc->as_hash ));
+#diag( $coll_doc->as_json );
 
 # media
 ok( my $audio = Net::PMP::Profile::Audio->new(

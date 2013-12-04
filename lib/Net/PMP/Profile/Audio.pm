@@ -4,6 +4,8 @@ extends 'Net::PMP::Profile::Media';
 
 our $VERSION = '0.01';
 
+sub get_profile_url {'http://api.pmp.io/profiles/audio'}
+
 1;
 
 __END__
@@ -26,6 +28,10 @@ L<https://github.com/publicmediaplatform/pmpdocs/wiki/Rich-Media-Profiles>.
 =head1 METHODS
 
 This class extends L<Net::PMP::Profile>. Only new or overridden methods are documented here.
+
+=head2 get_profile_url
+
+Returns a string for the PMP profile's URL.
 
 =head1 AUTHOR
 

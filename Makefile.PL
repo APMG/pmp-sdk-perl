@@ -19,6 +19,7 @@ requires 'UUID::Tiny'                => 0;
 requires 'DateTime::Format::ISO8601' => 0;
 requires 'Data::Validate::URI'       => 0;
 requires 'Media::Type::Simple'       => 0;
+requires 'Data::Rmap'                => 0;
 
 perl_version '5.8.3';
 license 'MIT';

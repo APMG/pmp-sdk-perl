@@ -7,10 +7,11 @@ use Net::PMP::CollectionDoc::Items;
 use UUID::Tiny ':std';
 use JSON;
 
-has 'links'      => ( is => 'ro', isa => 'HashRef',  required => 1, );
-has 'attributes' => ( is => 'ro', isa => 'HashRef',  required => 1, );
-has 'version'    => ( is => 'ro', isa => 'Str',      required => 1, );
-has 'items'      => ( is => 'ro', isa => 'ArrayRef', required => 0, );
+has 'links'      => ( is => 'ro', isa => 'HashRef', required => 1, );
+has 'attributes' => ( is => 'ro', isa => 'HashRef', required => 1, );
+has 'version' =>
+    ( is => 'ro', isa => 'Str', required => 1, default => '1.0', );
+has 'items' => ( is => 'ro', isa => 'ArrayRef', required => 0, );
 
 =head1 NAME
 

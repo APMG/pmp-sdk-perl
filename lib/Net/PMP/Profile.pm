@@ -1,7 +1,10 @@
 package Net::PMP::Profile;
 use Mouse;
 use DateTime::Format::ISO8601;
+use DateTime::Format::Strptime;
 use Data::Dump qw( dump );
+use Data::Rmap qw( rmap_ref );
+use Net::PMP::CollectionDoc;
 
 our $VERSION = '0.01';
 
@@ -10,31 +13,40 @@ our $VERSION = '0.01';
     use Locale::Language;
     use Data::Validate::URI qw(is_uri);
     my %all_langs = map { $_ => $_ } all_language_codes();
+    my $iso8601_formatter
+        = DateTime::Format::Strptime->new( pattern => '%FT%T.%3NZ' );
+    my $coerce_datetime = sub {
+        my $thing = shift;
+        if ( blessed $thing) {
+            if ( $thing->isa('DateTime') ) {
+                $thing->set_formatter($iso8601_formatter);
+                return $thing;
+            }
+            confess "$thing is not a DateTime object";
+        }
+        else {
+            my $dt = DateTime::Format::ISO8601->parse_datetime($thing);
+            $dt->set_formatter($iso8601_formatter);
+            return $dt;
+        }
+    };
     subtype 'ISO6391' => as 'Str' =>
         where { length($_) == 2 and exists $all_langs{$_} } =>
         message {"The provided hreflang ($_) is not a valid ISO639-1 value."};
     subtype 'DateTimeOrStr' => as class_type('DateTime');
-    coerce 'DateTimeOrStr' => from 'Object' => via {$_} => from 'Str' =>
-        via { DateTime::Format::ISO8601->parse_datetime($_) };
-    subtype 'ValidDates' => as 'HashRef' => where {
-
+    coerce 'DateTimeOrStr'  => from 'Object' =>
+        via { $coerce_datetime->($_) } => from 'Str' =>
+        via { $coerce_datetime->($_) };
+    subtype 'ValidDates' => as 'HashRef[DateTimeOrStr]';
+    coerce 'ValidDates' => from 'HashRef' => via {
         if ( !exists $_->{to} or !exists $_->{from} ) {
-            confess "HashRef must contain 'to' and 'from' keys";
+            confess "ValidDates must contain 'to' and 'from' keys";
         }
-        for my $k ( keys %$_ ) {
-            if ( blessed $_->{$k} ) {
-                if ( !$_->{$k}->isa('DateTime') ) {
-                    confess "value $_->{$k} is not a DateTime object";
-                }
-            }
-            else {
-                $_->{$k}
-                    = DateTime::Format::ISO8601->parse_datetime( $_->{$k} );
-            }
-        }
-        return $_;
+        $_->{to}   = $coerce_datetime->( $_->{to} );
+        $_->{from} = $coerce_datetime->( $_->{from} );
+        $_;
     };
-    subtype 'Hrefs' => as 'ArrayRef' => where {
+    subtype 'LinkHrefs' => as 'ArrayRef' => where {
         if ( ref($_) ne 'ARRAY' ) { return 0 }
         for my $u (@$_) {
             if ( !is_uri($u) ) {
@@ -52,13 +64,49 @@ our $VERSION = '0.01';
 has 'title'     => ( is => 'rw', isa => 'Str',           required => 1, );
 has 'hreflang'  => ( is => 'rw', isa => 'ISO6391',       default  => 'en', );
 has 'published' => ( is => 'rw', isa => 'DateTimeOrStr', coerce   => 1, );
-has 'valid'     => ( is => 'rw', isa => 'ValidDates', );
+has 'valid'     => ( is => 'rw', isa => 'ValidDates',    coerce   => 1, );
 has 'tags'        => ( is => 'rw', isa => 'ArrayRef[Str]', );
 has 'description' => ( is => 'rw', isa => 'Str', );
 has 'byline'      => ( is => 'rw', isa => 'Str', );
-has 'author'      => ( is => 'rw', isa => 'Hrefs', );
-has 'copyright'   => ( is => 'rw', isa => 'Hrefs', );
-has 'distributor' => ( is => 'rw', isa => 'Hrefs', );
+has 'author'      => ( is => 'rw', isa => 'LinkHrefs', );
+has 'copyright'   => ( is => 'rw', isa => 'LinkHrefs', );
+has 'distributor' => ( is => 'rw', isa => 'LinkHrefs', );
+
+sub get_profile_url {'http://api.pmp.io/profiles/base'}
+
+sub as_doc {
+    my $self = shift;
+
+    # coerce into hash
+    my %attrs = %{$self};
+
+    # pull out those attributes which are really links
+    my %links = ( profile => [ { href => $self->get_profile_url } ] );
+    for my $k ( keys %attrs ) {
+        if ( $self->meta->has_attribute($k) ) {
+            my $attr = $self->meta->get_attribute($k);
+            my $isa  = $attr->{isa};
+
+            #warn "$k => $isa";
+            if ( $isa eq 'LinkHrefs' ) {
+                $links{$k} = delete $attrs{$k};
+            }
+        }
+    }
+
+    # stringify any objects in %attrs
+    rmap_ref {
+        if ( blessed($_) ) { $_ .= "" }
+    }
+    \%attrs;
+
+    my $doc = Net::PMP::CollectionDoc->new(
+        attributes => \%attrs,
+        links      => \%links,
+    );
+    return $doc;
+
+}
 
 1;
 
@@ -142,6 +190,10 @@ Optional keyword array of strings.
 =head2 as_doc
 
 Returns a L<Net::PMP::CollectionDoc> object suitable for L<Net::PMP::Client> interaction.
+
+=head2 get_profile_url
+
+Returns a string for the PMP profile's URL.
 
 =head1 AUTHOR
 
