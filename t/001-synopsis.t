@@ -138,16 +138,22 @@ SKIP: {
     is( $client->last_response->code, 202, "save response was 202" );
     ok( $sample_doc->get_uri(),  "saved sample doc has uri" );
     ok( $sample_doc->get_guid(), "saved sample doc has guid" );
+
     sleep(3);    # since create is 202 ...
 
     # Read
     ok( $search_results = $client->get_doc( $sample_doc->get_uri() ),
         "search for sample doc" );
     is( $client->last_response->code, 200, 'search response was 200' );
-    is( $search_results->get_guid(),
-        $sample_doc->get_guid(),
-        "search results guid == sample doc guid"
-    );
+    if ( $client->last_response->code == 200 ) {
+        is( $search_results->get_guid(),
+            $sample_doc->get_guid(),
+            "search results guid == sample doc guid"
+        );
+    }
+    else {
+        pass("search latency too great -- skipping results test");
+    }
 
     # Update
     $sample_doc->attributes->{title} = 'i am a test document, redux';
