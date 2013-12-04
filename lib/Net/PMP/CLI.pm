@@ -49,6 +49,11 @@ Main method. Calls commands passed via @ARGV.
 
 =cut
 
+sub _getopt_full_usage {
+    my ( $self, $usage ) = @_;
+    $usage->die( { post_text => $self->commands } );
+}
+
 sub run {
     my $self = shift;
 
@@ -57,13 +62,13 @@ sub run {
     my @cmds = @{ $self->extra_argv };
 
     if ( !@cmds or $self->help_flag ) {
-        $self->usage->die( { post_text => $self->commands } );
+        $self->usage->die();
     }
 
     for my $cmd (@cmds) {
         if ( !$self->can($cmd) ) {
             warn "No such command $cmd\n";
-            $self->usage->die( { post_text => $self->commands } );
+            $self->usage->die();
         }
         $self->$cmd();
     }
