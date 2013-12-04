@@ -79,7 +79,9 @@ like( $@, qr/does not appear to be an array of hrefs/, "bad author href" );
 ok( my $coll_doc = $profile_doc->as_doc(), "profile->as_doc" );
 ok( $coll_doc->isa('Net::PMP::CollectionDoc'), "coll_doc isa CollectionDoc" );
 
+#diag( dump $coll_doc );
 #diag( $profile_doc->published );
+
 is_deeply(
     $coll_doc->attributes,
     {   title       => $profile_doc->title,

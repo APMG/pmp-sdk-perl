@@ -90,6 +90,11 @@ sub as_doc {
             #warn "$k => $isa";
             if ( $isa eq 'LinkHrefs' ) {
                 $links{$k} = delete $attrs{$k};
+                my @l;
+                for my $href ( @{ $links{$k} } ) {
+                    push @l, { href => $href };
+                }
+                $links{$k} = \@l;
             }
         }
     }

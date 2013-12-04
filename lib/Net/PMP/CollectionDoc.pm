@@ -214,7 +214,10 @@ Returns canonical URI for Doc per 'self' link.
 
 sub get_self_uri {
     my $self = shift;
-    return $self->links->{self}->[0]->{href};
+    if ( exists $self->links->{self} ) {
+        return $self->links->{self}->[0]->{href};
+    }
+    return '';
 }
 
 =head2 set_uri(I<uri>)
@@ -326,11 +329,14 @@ sub as_hash {
     if ( $self->get_uri and !$self->get_self_uri ) {
         $hash{links}->{self} = [ { href => $self->get_uri } ];
     }
-    my @write_links = qw( permission collection alternate );
-    for my $link (@write_links) {
-        if ( $self->links and $self->links->{$link} ) {
-            $hash{links}->{$link} = $self->links->{$link};
-        }
+
+    # TODO add any read-only links that come from the server
+    # in order to make round-trips safe
+    my %ro_links = map { $_ => 1 } qw( );
+    for my $link ( keys %{ $self->links } ) {
+        next if exists $hash{links}->{$link};
+        next if exists $ro_links{$link};
+        $hash{links}->{$link} = $self->links->{$link};
     }
 
     return \%hash;
