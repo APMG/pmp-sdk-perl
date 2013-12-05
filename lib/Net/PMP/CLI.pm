@@ -140,7 +140,7 @@ sub search {
     my $res    = $client->search($query) or return;
     my $items  = $res->get_items();
     while ( my $item = $items->next ) {
-        my $profile = $item->get_profile;
+        my $profile = $item->get_profile || 'root';
         $profile =~ s,^.+/,,;
         printf( "%s: %s [%s]\n",
             $profile, $item->get_title, $item->get_uri, );
