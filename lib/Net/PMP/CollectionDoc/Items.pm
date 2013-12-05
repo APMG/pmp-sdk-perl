@@ -33,14 +33,14 @@ sub next {
         return Net::PMP::CollectionDoc::Item->new( $items->[ $$i++ ] );
     }
 
-    #warn "[$$i] invalid Items object : " . dump( $items->[$$i] );
+    #warn "[$count] [$$i] Items object : " . dump( $items->[$$i] );
     while (
-        $count > $$i
+        $count >= $$i
         and ( !defined $items->[$$i]
             or ref( $items->[$$i] ) ne 'HASH' )
         )
     {
-        warn "[$$i] invalid Items object : " . dump( $items->[$$i] );
+        warn "[$$i of $count] invalid Items object : " . dump( $items->[$$i] );
         if ( $$i++ >= $count ) {
             return undef;
         }
