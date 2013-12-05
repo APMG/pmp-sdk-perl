@@ -154,30 +154,20 @@ SKIP: {
     ok( $sample_doc->get_guid(), "saved sample doc has guid" );
 
     # since create is 202, we try a few times while search index syncs ...
-    my $tries = 0;
-    while ( $tries++ < 10 ) {
-
-        # Read
-        my $search_results = $client->get_doc( $sample_doc->get_uri() );
-        if ( !$search_results ) {
-            sleep(2);
-            next;
-        }
-        ok( $search_results, "GET " . $sample_doc->get_uri() );
-        is( $client->last_response->code, 200, 'search response was 200' );
-        is( $search_results->get_guid(),
-            $sample_doc->get_guid(),
-            "search results guid == sample doc guid"
-        );
-        last;    # if we get here, exit loop
-    }
+    # Read
+    ok( $search_results = $client->get_doc( $sample_doc->get_uri(), 30 ),
+        "GET " . $sample_doc->get_uri() );
+    is( $client->last_response->code, 200, 'search response was 200' );
+    is( $search_results->get_guid(),
+        $sample_doc->get_guid(),
+        "search results guid == sample doc guid"
+    );
 
     # Update
     $sample_doc->attributes->{title} = 'i am a test document, redux';
     ok( $client->save($sample_doc), "update title" );
     is( $client->last_response->code, 202, "save response was 202" );
-    sleep(3);    # since update is 202
-    ok( $search_results = $client->get_doc( $sample_doc->get_uri ),
+    ok( $search_results = $client->get_doc( $sample_doc->get_uri, 10 ),
         "re-fetch sample doc" );
     is( $search_results->get_title,
         $sample_doc->get_title, "search results title == sample doc title" );
@@ -185,7 +175,11 @@ SKIP: {
     # Delete
     ok( $client->delete($sample_doc), "delete sample doc" );
     is( $client->last_response->code, 204, "delete response was 204" );
-    sleep(3);    # since delete is 204 but really maybe should be 202?
+
+    # 204 response means it will be deleted, eventually.
+    # until doc is actually deleted, will return a 400,
+    # so delay a little to avoid that.
+    sleep(3);
     ok( !$client->get_doc( $sample_doc->get_uri ),
         "get_doc() for sample now empty"
     );

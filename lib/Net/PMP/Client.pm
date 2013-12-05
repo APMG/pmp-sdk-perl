@@ -477,31 +477,46 @@ sub delete {
     return 1;
 }
 
-=head2 get_doc([I<uri>]) 
+=head2 get_doc( [I<uri>] [,I<tries>] ) 
 
 Returns a Net::PMP::CollectionDoc representing I<uri>. Defaults
-to the API base endpoint if I<uri> is omitted.
+to the API base endpoint if I<uri> is omitted or false.
 
 If I<uri> is not found, returns 0 (zero) just like get().
+
+The second, optional parameter I<tries> indicates how many re-tries should
+be attempted when the response is a 404. This feature helps compenstate
+for occasional latency on the server between an initial save and subsequent
+read, since PUT and DELETE requests always return a 202 (accepted but not
+necessarily acted upon). The default is 1 try.
 
 =cut
 
 sub get_doc {
-    my $self = shift;
-    my $uri = shift || $self->host;
+    my $self  = shift;
+    my $uri   = shift || $self->host;
+    my $tries = shift || 1;
 
     # optimize a little for the root doc
     if ( $uri eq $self->host and $self->{_home_doc} ) {
         return $self->{_home_doc};
     }
 
-    my $response = $self->get($uri);
-
-    # convert JSON response into a CollectionDoc
-    $self->debug and warn dump $response;
+    my $response;
+    my $attempts = 0;
+    while ( !$response and $attempts++ < $tries ) {
+        $response = $self->get($uri);
+        $self->debug and warn dump $response;
+        if ( !$response and $attempts < $tries ) {
+            $self->debug
+                and warn "search returned 404 - sleeping and trying again\n";
+            sleep(1);
+        }
+    }
 
     return $response unless $response;    # 404
 
+    # convert JSON response into a CollectionDoc
     # check content type to determine object
     if ( $self->last_response->content_type eq 'application/schema+json' ) {
         return Net::PMP::Schema->new($response);
@@ -525,7 +540,7 @@ sub get_doc_by_guid {
             ->as_uri( { guid => $guid } ) );
 }
 
-=head2 search( I<opts> )
+=head2 search( I<opts> [,I<tries>] )
 
 Search in the 'urn:pmp:query:docs' namespace.
 
@@ -533,13 +548,17 @@ Returns a Net::PMP::CollectionDoc object for I<opts>.
 I<opts> are passed directly to the query link URI template.
 See L<https://github.com/publicmediaplatform/pmpdocs/wiki/Query-Link-Relation>.
 
+The second, optional parameter I<tries> is passed internally to get_doc().
+See the description of get_doc().
+
 =cut
 
 sub search {
-    my $self = shift;
-    my $opts = shift or croak "options required";
-    my $uri  = $self->{_home_doc}->query('urn:pmp:query:docs')->as_uri($opts);
-    return $self->get_doc($uri);
+    my $self  = shift;
+    my $opts  = shift or croak "options required";
+    my $tries = shift || 1;
+    my $uri = $self->{_home_doc}->query('urn:pmp:query:docs')->as_uri($opts);
+    return $self->get_doc( $uri, $tries );
 }
 
 =head2 save(I<doc_object>)

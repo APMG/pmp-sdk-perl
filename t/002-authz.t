@@ -7,6 +7,10 @@ use Data::Dump qw( dump );
 use_ok('Net::PMP::Client');
 use_ok('Net::PMP::CollectionDoc');
 
+# http://code.google.com/p/test-more/issues/detail?id=46
+binmode Test::More->builder->output,         ":utf8";
+binmode Test::More->builder->failure_output, ":utf8";
+
 sub clean_up_test_docs {
     my $client = shift or die "client required";
     for my $profile (qw( story organization user group )) {
@@ -289,15 +293,15 @@ SKIP: {
     # org2 should see doc1, doc3
     # org3 should see doc3
     ok( my $org1_res
-            = $org1_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
+            = $org1_client->search( { tag => 'pmp_sdk_perl_test_doc' }, 10 ),
         "org1 search"
     );
     ok( my $org2_res
-            = $org2_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
+            = $org2_client->search( { tag => 'pmp_sdk_perl_test_doc' }, 10 ),
         "org2 search"
     );
     ok( my $org3_res
-            = $org3_client->search( { tag => 'pmp_sdk_perl_test_doc' } ),
+            = $org3_client->search( { tag => 'pmp_sdk_perl_test_doc' }, 10 ),
         "org3 search"
     );
     is( $org1_res->has_items, 3, "org1 has 3 items" );
