@@ -7,6 +7,10 @@ use Data::Dump qw( dump );
 use_ok('Net::PMP::Client');
 use_ok('Net::PMP::CollectionDoc');
 
+# http://code.google.com/p/test-more/issues/detail?id=46
+binmode Test::More->builder->output,         ":utf8";
+binmode Test::More->builder->failure_output, ":utf8";
+
 SKIP: {
     if ( !$ENV{PMP_CLIENT_ID} or !$ENV{PMP_CLIENT_SECRET} ) {
         skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 57;
@@ -118,10 +122,20 @@ SKIP: {
     ############################################################################
     # CRUD
 
+    # start clean
+    my $existing = $client->search( { tag => 'pmp_sdk_perl_testcontent' } );
+    if ($existing) {
+        my $items = $existing->get_items();
+        while ( my $i = $items->next ) {
+            diag( "cleaning up existing test document: " . $i->get_uri );
+            $client->delete($i);
+        }
+    }
+
     ok( my $sample_doc = Net::PMP::CollectionDoc->new(
             version    => '1.0',
             attributes => {
-                tags  => [qw( pmp-sdk-testcontent )],
+                tags  => [qw( pmp_sdk_perl_testcontent )],
                 title => 'i am a test document',
 
                 #guid  => '5890510b-f237-3714-9f51-36ceafd8bbb7',
@@ -139,20 +153,23 @@ SKIP: {
     ok( $sample_doc->get_uri(),  "saved sample doc has uri" );
     ok( $sample_doc->get_guid(), "saved sample doc has guid" );
 
-    sleep(3);    # since create is 202 ...
+    # since create is 202, we try a few times while search index syncs ...
+    my $tries = 0;
+    while ( $tries++ < 10 ) {
 
-    # Read
-    ok( $search_results = $client->get_doc( $sample_doc->get_uri() ),
-        "search for sample doc" );
-    is( $client->last_response->code, 200, 'search response was 200' );
-    if ( $client->last_response->code == 200 ) {
+        # Read
+        my $search_results = $client->get_doc( $sample_doc->get_uri() );
+        if ( !$search_results ) {
+            sleep(2);
+            next;
+        }
+        ok( $search_results, "GET " . $sample_doc->get_uri() );
+        is( $client->last_response->code, 200, 'search response was 200' );
         is( $search_results->get_guid(),
             $sample_doc->get_guid(),
             "search results guid == sample doc guid"
         );
-    }
-    else {
-        pass("search latency too great -- skipping results test");
+        last;    # if we get here, exit loop
     }
 
     # Update
