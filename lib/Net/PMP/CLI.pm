@@ -21,6 +21,11 @@ has 'child'   => ( is => 'rw', isa => 'Str', );
 has 'tag'     => ( is => 'rw', isa => 'Str', );
 has 'tags'    => ( is => 'rw', isa => 'ArrayRef', );
 has 'query'   => ( is => 'rw', isa => 'HashRef', );
+has 'user'    => ( is => 'rw', isa => 'Str' );
+has 'pass'    => ( is => 'rw', isa => 'Str' );
+has 'scope'   => ( is => 'rw', isa => 'Str' );
+has 'expires' => ( is => 'rw', isa => 'Str' );
+has 'label'   => ( is => 'rw', isa => 'Str' );
 
 =head1 NAME
 
@@ -171,6 +176,37 @@ sub create {
     $client->save($doc);
     printf( "%s saved as '%s' at %s\n",
         $profile, $doc->get_title, $doc->get_uri );
+}
+
+=head2 create_credentials
+
+Create a credential set. Requires --user and --pass options,
+and optionally --scope --expires --label.
+
+=cut
+
+sub create_credentials {
+    my $self    = shift;
+    my $user    = $self->user or die "--user required";
+    my $pass    = $self->pass or die "--pass required";
+    my $scope   = $self->scope;
+    my $expires = $self->expires;
+    my $label   = $self->label;
+    my $client  = $self->init_client;
+    my $creds   = $client->create_credentials(
+        username => $user,
+        password => $pass,
+        scope    => $scope,
+        expires  => $expires,
+        label    => $label,
+    );
+
+    if ($creds) {
+        printf( "Credentials created: %s\n", dump($creds) );
+    }
+    else {
+        printf("Failed to create credentials\n");
+    }
 }
 
 =head2 delete
