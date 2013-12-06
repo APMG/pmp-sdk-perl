@@ -1,5 +1,6 @@
 package Net::PMP::Client;
 use Mouse;
+with 'MouseX::SimpleConfig';
 use Carp;
 use Data::Dump qw( dump );
 use LWP::UserAgent 6;    # SSL verification bug fixed in 6.03
@@ -13,6 +14,7 @@ use Net::PMP::Credentials;
 
 our $VERSION = '0.01';
 
+has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
 has 'host' => (
     is       => 'rw',
     isa      => 'Str',
