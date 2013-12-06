@@ -1,30 +1,14 @@
 package Net::PMP::MediaEnclosure;
 use Mouse;
+use Net::PMP::TypeConstraints;
 
 our $VERSION = '0.01';
 
-{
-    use Mouse::Util::TypeConstraints;
-    use Data::Validate::URI qw(is_uri);
-    use Media::Type::Simple qw(is_type);
-    subtype 'Href' => as 'Str' => where {
-        is_uri($_);
-    } => message {
-        "The value ($_) does not appear to be a href.";
-    };
-    subtype 'MediaType' => as 'Str' => where {
-        is_type($_);
-    } => message {
-        "The value ($_) does not appear to be a valid media type.";
-    };
-
-    no Mouse::Util::TypeConstraints;
-}
-
-has 'href' => ( is => 'rw', isa => 'Href',      required => 1, );
-has 'type' => ( is => 'rw', isa => 'MediaType', required => 1, );
-has 'meta' => ( is => 'rw', isa => 'HashRef', );
-has 'crop' => ( is => 'rw', isa => 'Str', );
+has 'href' => ( is => 'rw', isa => 'Net::PMP::Type::Href', required => 1, );
+has 'type' =>
+    ( is => 'rw', isa => 'Net::PMP::Type::MediaType', required => 1, );
+has 'meta'       => ( is => 'rw', isa => 'HashRef', );
+has 'crop'       => ( is => 'rw', isa => 'Str', );
 has 'width'      => ( is => 'rw', isa => 'Int', );
 has 'height'     => ( is => 'rw', isa => 'Int', );
 has 'resolution' => ( is => 'rw', isa => 'Float', );

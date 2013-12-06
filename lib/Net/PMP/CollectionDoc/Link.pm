@@ -3,13 +3,14 @@ use Mouse;
 use Carp;
 use Data::Dump qw( dump );
 use URI::Template;
+use Net::PMP::TypeConstraints;
 
 has 'hints'      => ( is => 'rw', isa => 'HashRef' );
 has 'template'   => ( is => 'rw', isa => 'Str' );
 has 'vars'       => ( is => 'rw', isa => 'HashRef' );
 has 'rels'       => ( is => 'rw', isa => 'ArrayRef', );
 has 'title'      => ( is => 'rw', isa => 'Str' );
-has 'href'       => ( is => 'rw', isa => 'Str' );
+has 'href'       => ( is => 'rw', isa => 'Net::PMP::Type::Href' );
 has 'method'     => ( is => 'rw', isa => 'Str' );
 has 'type'       => ( is => 'rw', isa => 'Str' );
 has 'pagenum'    => ( is => 'rw', isa => 'Int' );

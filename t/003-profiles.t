@@ -74,7 +74,7 @@ eval {
     );
 };
 
-like( $@, qr/does not appear to be an array of hrefs/, "bad author href" );
+like( $@, qr/not a valid href/, "bad author href" );
 
 ok( my $coll_doc = $profile_doc->as_doc(), "profile->as_doc" );
 ok( $coll_doc->isa('Net::PMP::CollectionDoc'), "coll_doc isa CollectionDoc" );
@@ -118,7 +118,7 @@ eval {
 
 like(
     $@,
-    qr/Validation failed for 'ArrayRefMediaEnclosure'/,
+    qr/Validation failed for 'Net::PMP::Type::MediaEnclosures'/,
     "bad audio enclosure - string"
 );
 
@@ -151,4 +151,4 @@ eval {
     );
 };
 
-like( $@, qr/does not appear to be a href/, "bad audio enclosure - href" );
+like( $@, qr/is not a valid href/, "bad audio enclosure - href" );

@@ -5,27 +5,9 @@ use Net::PMP::MediaEnclosure;
 
 our $VERSION = '0.01';
 
-{
-    use Mouse::Util::TypeConstraints;
-    my $coerce_enclosure = sub {
-        if ( ref( $_[0] ) eq 'HASH' ) {
-            return Net::PMP::MediaEnclosure->new( $_[0] );
-        }
-        else { return $_[0]; }
-    };
-    subtype 'MediaEnclosure' => as class_type('Net::PMP::MediaEnclosure');
-    coerce 'MediaEnclosure' => from 'Object' => via {$_} => from 'HashRef' =>
-        via { Net::PMP::MediaEnclosure->new($_) };
-    subtype 'ArrayRefMediaEnclosure' => as 'ArrayRef[MediaEnclosure]';
-    coerce 'ArrayRefMediaEnclosure' => from 'ArrayRef[HashRef]' => via {
-        [ map { $coerce_enclosure->($_) } @$_ ];
-    } => from 'HashRef' => via { [ $coerce_enclosure->($_) ] };
-    no Mouse::Util::TypeConstraints;
-}
-
 has 'enclosure' => (
     is       => 'rw',
-    isa      => 'ArrayRefMediaEnclosure',
+    isa      => 'Net::PMP::Type::MediaEnclosures',
     required => 1,
     coerce   => 1,
 );
