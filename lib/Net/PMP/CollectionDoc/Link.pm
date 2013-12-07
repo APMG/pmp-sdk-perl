@@ -37,6 +37,11 @@ sub as_uri {
     return $tmpl->process( $self->_mangle_options($options) );
 }
 
+sub as_hash {
+    my $self = shift;
+    return { %{$self} };
+}
+
 sub _coerce_opt {
     my $self = shift;
     my $opt  = shift;
@@ -115,6 +120,10 @@ Net::PMP::CollectionDoc::Link represents a link in a Collection.doc+JSON PMP API
 =head2 as_uri(I<options>)
 
 Applies I<options> hashref against the template() value and returns a URI object.
+
+=head2 as_hash
+
+Returns object as Perl hashref.
 
 =head1 AUTHOR
 

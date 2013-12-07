@@ -1,13 +1,14 @@
 package Net::PMP::Profile;
 use Mouse;
 use Data::Dump qw( dump );
-use Data::Rmap qw( rmap_ref );
+use Data::Clean::JSON;
 use Net::PMP::TypeConstraints;
 use Net::PMP::CollectionDoc;
 use Net::PMP::CollectionDoc::Link;
 
 our $VERSION = '0.01';
 
+# attributes
 has 'title' => ( is => 'rw', isa => 'Str', required => 1, );
 has 'hreflang' =>
     ( is => 'rw', isa => 'Net::PMP::Type::ISO6391', default => 'en', );
@@ -18,13 +19,34 @@ has 'valid' =>
 has 'tags'        => ( is => 'rw', isa => 'ArrayRef[Str]', );
 has 'description' => ( is => 'rw', isa => 'Str', );
 has 'byline'      => ( is => 'rw', isa => 'Str', );
+
+# links
 has 'author' => ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
 has 'copyright' =>
     ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
 has 'distributor' =>
     ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
+has 'profile' => ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
+has 'collection' =>
+    ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
+has 'item' => ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
+has 'permission' =>
+    ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
+has 'alternate' =>
+    ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
 
-sub get_profile_url {'http://api.pmp.io/profiles/base'}
+sub get_profile_url   {'http://api.pmp.io/profiles/base'}
+sub get_profile_title { ref(shift) }
+
+# singleton for class
+my $cleaner = Data::Clean::JSON->new(
+    DateTime                        => ['stringify'],
+    'Net::PMP::CollectionDoc::Link' => [ call_method => 'as_hash' ],
+    SCALAR                          => ['deref_scalar'],
+    '-ref'                          => ['replace_with_ref'],
+    '-circular'                     => 0, #['detect_circular'],
+    '-obj'                          => ['unbless'],
+);
 
 sub as_doc {
     my $self = shift;
@@ -37,34 +59,32 @@ sub as_doc {
         profile => [
             Net::PMP::CollectionDoc::Link->new(
                 href  => $self->get_profile_url,
-                title => ref($self),
+                title => $self->get_profile_title,
             )
         ]
     );
+
+    my %class_attrs = map { $_->name => $_ } $self->meta->get_all_attributes;
+
     for my $k ( keys %attrs ) {
-        if ( $self->meta->has_attribute($k) ) {
-            my $attr = $self->meta->get_attribute($k);
+        if ( exists $class_attrs{$k} ) {
+            my $attr = $class_attrs{$k};
             my $isa  = $attr->{isa};
 
-            #warn "$k => $isa";
+            #warn "key $k => isa $isa";
             if ( $isa eq 'Net::PMP::Type::Links' ) {
-                my @links = @{ delete $attrs{$k} };
-                $links{$k} = \@links;
+                $links{$k} = delete $attrs{$k};
+            }
+            elsif ( $isa eq 'Net::PMP::Type::Link' ) {
+                $links{$k} = [ delete $attrs{$k} ];
             }
         }
     }
 
-    # stringify any objects in %attrs
-    rmap_ref {
-        if ( blessed($_) ) { $_ .= "" }
-    }
-    \%attrs;
-
-    my $doc = Net::PMP::CollectionDoc->new(
-        attributes => \%attrs,
-        links      => \%links,
-    );
-    return $doc;
+    # CollectionDoc can only work with strings
+    my %doc = ( attributes => \%attrs, links => \%links );
+    my $clean = $cleaner->clean_in_place( \%doc );
+    return Net::PMP::CollectionDoc->new($clean);
 
 }
 
@@ -154,6 +174,10 @@ Returns a L<Net::PMP::CollectionDoc> object suitable for L<Net::PMP::Client> int
 =head2 get_profile_url
 
 Returns a string for the PMP profile's URL.
+
+=head2 get_profile_title
+
+Returns a string for the PMP profile's title. Default is the class name.
 
 =head1 AUTHOR
 
