@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 21;
+use Test::More tests => 25;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Profile');
@@ -152,3 +152,42 @@ eval {
 };
 
 like( $@, qr/is not a valid href/, "bad audio enclosure - href" );
+
+# subclassing
+
+{
+
+    package My::Profile;
+    use Mouse;
+    extends 'Net::PMP::Profile';
+    has 'misc_links' =>
+        ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
+}
+
+ok( my $my_profile = My::Profile->new(
+        misc_links => ['http://pmp.io/test'],
+        permission => 'http://mpr.org/permission/granted',
+        title      => 'i am a my::profile',
+    ),
+    "new My::Profile"
+);
+ok( my $my_doc = $my_profile->as_doc, "my_profile->as_doc" );
+
+#diag( dump $my_doc );
+is_deeply(
+    $my_doc->attributes,
+    { hreflang => "en", title => "i am a my::profile" },
+    "attributes detected"
+);
+is_deeply(
+    $my_doc->links,
+    {   misc_links => [ { href => "http://pmp.io/test" } ],
+        permission => [ { href => "http://mpr.org/permission/granted" } ],
+        profile    => [
+            {   href  => "http://api.pmp.io/profiles/base",
+                title => "My::Profile"
+            },
+        ],
+    },
+    "links detected"
+);
