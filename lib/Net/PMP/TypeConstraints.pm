@@ -15,10 +15,10 @@ subtype 'Net::PMP::Type::ISO6391' => as 'Str' =>
 # datetimes
 use DateTime::Format::ISO8601;
 use DateTime::Format::Strptime;
-my $iso8601_formatter
-    = DateTime::Format::Strptime->new( pattern => '%FT%T.%3NZ' );
 my $coerce_datetime = sub {
     my $thing = shift;
+    my $iso8601_formatter
+        = DateTime::Format::Strptime->new( pattern => '%FT%T.%3NZ' );
     if ( blessed $thing) {
         if ( $thing->isa('DateTime') ) {
             $thing->set_formatter($iso8601_formatter);
