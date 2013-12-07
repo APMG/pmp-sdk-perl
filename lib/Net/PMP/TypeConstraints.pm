@@ -69,8 +69,8 @@ coerce 'Net::PMP::Type::Link' => from 'Any' => via { $coerce_link->($_) };
 subtype 'Net::PMP::Type::Links' => as 'ArrayRef[Net::PMP::Type::Link]';
 coerce 'Net::PMP::Type::Links' => from 'ArrayRef' => via {
     [ map { $coerce_link->($_) } @$_ ];
-} => from 'HashRef' => via { [ $coerce_link->($_) ] } => from 'Object' =>
-    via { [$_] };
+} => from 'HashRef' => via { [ $coerce_link->($_) ] } => from 'Any' =>
+    via { [ $coerce_link->($_) ] };
 
 # Content types
 use Media::Type::Simple qw(is_type);
