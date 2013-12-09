@@ -31,7 +31,7 @@ has 'collection' =>
     ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
 has 'item' => ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
 has 'permission' =>
-    ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
+    ( is => 'rw', isa => 'Net::PMP::Type::Permissions', coerce => 1, );
 has 'alternate' =>
     ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
 
@@ -40,12 +40,13 @@ sub get_profile_title { ref(shift) }
 
 # singleton for class
 my $cleaner = Data::Clean::JSON->new(
-    DateTime                        => ['stringify'],
-    'Net::PMP::CollectionDoc::Link' => [ call_method => 'as_hash' ],
-    SCALAR                          => ['deref_scalar'],
-    '-ref'                          => ['replace_with_ref'],
-    '-circular'                     => 0, #['detect_circular'],
-    '-obj'                          => ['unbless'],
+    DateTime                              => ['stringify'],
+    'Net::PMP::CollectionDoc::Link'       => [ call_method => 'as_hash' ],
+    'Net::PMP::CollectionDoc::Permission' => [ call_method => 'as_hash' ],
+    SCALAR                                => ['deref_scalar'],
+    '-ref'                                => ['replace_with_ref'],
+    '-circular' => 0,             #['detect_circular'],
+    '-obj'      => ['unbless'],
 );
 
 sub as_doc {
@@ -76,6 +77,12 @@ sub as_doc {
                 $links{$k} = delete $attrs{$k};
             }
             elsif ( $isa eq 'Net::PMP::Type::Link' ) {
+                $links{$k} = [ delete $attrs{$k} ];
+            }
+            elsif ( $isa eq 'Net::PMP::Type::Permissions' ) {
+                $links{$k} = delete $attrs{$k};
+            }
+            elsif ( $isa eq 'Net::PMP::Type::Permission' ) {
                 $links{$k} = [ delete $attrs{$k} ];
             }
         }

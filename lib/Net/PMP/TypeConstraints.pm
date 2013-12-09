@@ -72,6 +72,33 @@ coerce 'Net::PMP::Type::Links' => from 'ArrayRef' => via {
 } => from 'HashRef' => via { [ $coerce_link->($_) ] } => from 'Any' =>
     via { [ $coerce_link->($_) ] };
 
+# permission links (special link case)
+my $coerce_permission = sub {
+
+    # defer till runtime to avoid circular dependency
+    require Net::PMP::CollectionDoc::Permission;
+
+    if ( ref( $_[0] ) eq 'HASH' ) {
+        return Net::PMP::CollectionDoc::Permission->new( $_[0] );
+    }
+    elsif ( blessed $_[0] ) {
+        return $_[0];
+    }
+    else {
+        return Net::PMP::CollectionDoc::Permission->new( href => $_[0] );
+    }
+};
+subtype 'Net::PMP::Type::Permission' =>
+    as class_type('Net::PMP::CollectionDoc::Permission');
+coerce 'Net::PMP::Type::Permission' => from 'Any' =>
+    via { $coerce_permission->($_) };
+subtype 'Net::PMP::Type::Permissions' => as
+    'ArrayRef[Net::PMP::Type::Permission]';
+coerce 'Net::PMP::Type::Permissions' => from 'ArrayRef' => via {
+    [ map { $coerce_permission->($_) } @$_ ];
+} => from 'HashRef' => via { [ $coerce_permission->($_) ] } => from 'Any' =>
+    via { [ $coerce_permission->($_) ] };
+
 # Content types
 use Media::Type::Simple qw(is_type);
 

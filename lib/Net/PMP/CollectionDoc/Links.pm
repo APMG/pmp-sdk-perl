@@ -3,6 +3,7 @@ use Mouse;
 use Carp;
 use Data::Dump qw( dump );
 use Net::PMP::CollectionDoc::Link;
+use Net::PMP::CollectionDoc::Permission;
 
 has 'links' => (
     is       => 'rw',
@@ -33,7 +34,12 @@ sub _bless_links {
         if ( $link->{'href-template'} ) {
             $h{template} = $link->{'href-template'};
         }
-        $link = Net::PMP::CollectionDoc::Link->new(%h);
+        if ( $self->type eq 'permission' ) {
+            $link = Net::PMP::CollectionDoc::Permission->new(%h);
+        }
+        else {
+            $link = Net::PMP::CollectionDoc::Link->new(%h);
+        }
     }
     return $links;
 }

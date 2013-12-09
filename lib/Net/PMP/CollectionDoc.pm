@@ -39,7 +39,7 @@ Net::PMP::CollectionDoc represents the PMP API media type L<https://github.com/p
 
 =head2 get_links( I<type> )
 
-Returns Net::PMP::CollectionDoc::Links object for I<type>, which may be one of:
+Returns Net::PMP::CollectionDoc::Links object for I<type>, which may be one of (for example):
 
 =over
 
@@ -50,6 +50,8 @@ Returns Net::PMP::CollectionDoc::Links object for I<type>, which may be one of:
 =item navigation
 
 =item query
+
+=item permission
 
 =back
 
