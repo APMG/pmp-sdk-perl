@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 26;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Profile');
@@ -26,6 +26,7 @@ ok( my $profile_doc = Net::PMP::Profile->new(
         author      => [qw( http://api.pmp.io/user/some-guid )],
         copyright   => [qw( http://americanpublicmedia.org/ )],
         distributor => [qw( http://api.pmp.io/organization/different-guid )],
+        permission  => [qw( http://api.pmp.io/docs/some-group-guid )],
     ),
     "synopsis constructor"
 );
@@ -95,7 +96,27 @@ is_deeply(
     "coll_doc attributes"
 );
 
-#diag(dump( $coll_doc->as_hash ));
+is_deeply(
+    $coll_doc->as_hash->{links},
+    {   author    => [ { href => "http://api.pmp.io/user/some-guid" } ],
+        copyright => [ { href => "http://americanpublicmedia.org/" } ],
+        distributor =>
+            [ { href => "http://api.pmp.io/organization/different-guid" } ],
+        permission => [
+            {   href      => "http://api.pmp.io/docs/some-group-guid",
+                operation => "read",
+            },
+        ],
+        profile => [
+            {   href  => "http://api.pmp.io/profiles/base",
+                title => "Net::PMP::Profile",
+            },
+        ],
+    },
+    "collection links"
+);
+
+#diag( dump( $coll_doc->as_hash ) );
 #diag( $coll_doc->as_json );
 
 # media
@@ -182,8 +203,12 @@ is_deeply(
 is_deeply(
     $my_doc->links,
     {   misc_links => [ { href => "http://pmp.io/test" } ],
-        permission => [ { href => "http://mpr.org/permission/granted" } ],
-        profile    => [
+        permission => [
+            {   href      => "http://mpr.org/permission/granted",
+                operation => 'read',
+            }
+        ],
+        profile => [
             {   href  => "http://api.pmp.io/profiles/base",
                 title => "My::Profile"
             },

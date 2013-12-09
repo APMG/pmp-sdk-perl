@@ -4,10 +4,12 @@ use Carp;
 use Data::Dump qw( dump );
 use Net::PMP::TypeConstraints;
 
-has 'href' => ( is => 'rw', isa => 'Net::PMP::Type::Href' );
+has 'href' => ( is => 'rw', isa => 'Net::PMP::Type::Href', required => 1, );
 has 'operation' => (
-    is  => 'rw',
-    isa => Mouse::Util::TypeConstraints::enum( [qw( read write )] )
+    is       => 'rw',
+    isa      => Mouse::Util::TypeConstraints::enum( [qw( read write )] ),
+    default  => 'read',
+    required => 1,
 );
 has 'blacklist' => ( is => 'rw', isa => 'Bool' );
 
