@@ -8,7 +8,7 @@ use UUID::Tiny ':std';
 use JSON;
 
 has 'links'      => ( is => 'ro', isa => 'HashRef', required => 1, );
-has 'attributes' => ( is => 'ro', isa => 'HashRef', required => 1, );
+has 'attributes' => ( is => 'ro', isa => 'HashRef', required => 0, );
 has 'version' =>
     ( is => 'ro', isa => 'Str', required => 1, default => '1.0', );
 has 'items' => ( is => 'ro', isa => 'ArrayRef', required => 0, );
@@ -92,7 +92,7 @@ sub get_items {
         croak "No items defined for CollectionDoc";
     }
     my $navlinks = $self->get_links('navigation');
-    my $navself  = $navlinks->rels('urn:pmp:navigation:self')->[0];
+    my $navself  = $navlinks->rels('urn:pmp:navigation:self', 'self')->[0];
     my $total    = $navself->totalitems;
     return Net::PMP::CollectionDoc::Items->new(
         items    => $self->items,
