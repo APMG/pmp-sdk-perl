@@ -92,7 +92,7 @@ sub get_items {
         croak "No items defined for CollectionDoc";
     }
     my $navlinks = $self->get_links('navigation');
-    my $navself  = $navlinks->rels('urn:pmp:navigation:self', 'self')->[0];
+    my $navself  = $navlinks->rels('self')->[0];
     my $total    = $navself->totalitems;
     return Net::PMP::CollectionDoc::Items->new(
         items    => $self->items,
@@ -113,7 +113,7 @@ sub has_items {
         return 0;
     }
     my $navlinks = $self->get_links('navigation');
-    my $navself  = $navlinks->rels('urn:pmp:navigation:self')->[0];
+    my $navself  = $navlinks->rels('self')->[0];
     return $navself->totalitems;
 }
 
@@ -168,7 +168,7 @@ sub get_uri {
     my $self = shift;
     if ( $self->links and $self->links->{navigation} ) {
         my $nav      = $self->get_links('navigation');
-        my $nav_self = $nav->rels('urn:pmp:navigation:self')->[0];
+        my $nav_self = $nav->rels('self')->[0];
         if ($nav_self) {
             return $nav_self->href;
         }
