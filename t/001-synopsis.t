@@ -50,6 +50,8 @@ SKIP: {
             "urn:pmp:query:docs"       => "Query for documents",
             "urn:pmp:query:groups"     => "Query for groups",
             "urn:pmp:query:guids"      => "Generate guids",
+            "urn:pmp:query:profiles"   => "Query for profiles",
+            "urn:pmp:query:schemas"    => "Query for schemas",
             "urn:pmp:query:users"      => "Query for users",
         },
         "got expected rel types"
@@ -71,6 +73,8 @@ SKIP: {
             distributorgroup =>
                 "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
             enddate =>
+                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+            guid =>
                 "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
             has =>
                 "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",

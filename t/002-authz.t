@@ -67,7 +67,7 @@ SKIP: {
                 },
             },
             links => {
-                profile => [ { href => $client->uri_for_profile('user') } ]
+                profile => [ { href => $client->uri_for_profile('user') } ],
             },
         ),
         "create org1"
@@ -288,6 +288,10 @@ SKIP: {
         ),
         "create org3 client"
     );
+
+    # sandbox can have some delay in sync
+    diag("sleeping a few seconds to let the server search sync with db...");
+    sleep(10);
 
     # org1 should see doc1, doc2, doc3
     # org2 should see doc1, doc3
