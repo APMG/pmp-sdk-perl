@@ -206,9 +206,10 @@ Expires the currently active AuthToken.
 =cut
 
 sub revoke_token {
-    my $self    = shift;
-    my $uri     = $self->host . $self->auth_endpoint;
-    my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
+    my $self = shift;
+    my $uri  = $self->get_credentials_uri();
+    $uri->path( $self->auth_endpoint );
+    my $hash = encode_base64( join( ':', $self->id, $self->secret ), '' );
     my $request = HTTP::Request->new( DELETE => $uri );
     $request->header( 'Authorization' => 'Basic ' . $hash );
     my $response = $self->ua->request($request);
@@ -232,10 +233,10 @@ sub get_credentials_uri {
     # see https://github.com/publicmediaplatform/pmpcode/issues/78
     my $self = shift;
     if ( $self->host =~ m/api-sandbox/ ) {
-        return 'https://publish-sandbox.pmp.io/auth/credentials';
+        return URI->new('https://publish-sandbox.pmp.io/auth/credentials');
     }
     else {
-        return 'https://publish.pmp.io/auth/credentials';
+        return URI->new('https://publish.pmp.io/auth/credentials');
     }
 }
 
