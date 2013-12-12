@@ -11,6 +11,7 @@ use Net::PMP::AuthToken;
 use Net::PMP::CollectionDoc;
 use Net::PMP::Schema;
 use Net::PMP::Credentials;
+use URI;
 
 our $VERSION = '0.01';
 
@@ -219,6 +220,25 @@ sub revoke_token {
     return $self;
 }
 
+=head2 get_credentials_uri
+
+Returns the URI for the Credentials API.
+
+=cut
+
+sub get_credentials_uri {
+
+    # TODO use root doc authentication hints when they exist
+    # see https://github.com/publicmediaplatform/pmpcode/issues/78
+    my $self = shift;
+    if ( $self->host =~ m/api-sandbox/ ) {
+        return 'https://publish-sandbox.pmp.io/auth/credentials';
+    }
+    else {
+        return 'https://publish.pmp.io/auth/credentials';
+    }
+}
+
 =head2 create_credentials( I<params>  )
 
 Instantiates credentials at server. I<params> should be a hash of key/value pairs.
@@ -242,15 +262,31 @@ Returns a Net::PMP::Credentials object.
 =cut
 
 sub create_credentials {
-    my $self    = shift;
-    my %params  = @_;
-    my $user    = delete $params{username} or croak "username required";
-    my $pass    = delete $params{password} or croak "password required";
-    my $scope   = delete $params{scope} || 'read';
-    my $expires = delete $params{expires} || 86400;
-    my $label   = delete $params{label} || 'null';
-    my $uri     = $self->host . '/auth/credentials';
-    my $hash    = encode_base64( join( ':', $user, $pass ), '' );
+    my $self   = shift;
+    my %params = @_;
+    my $user   = delete $params{username} or croak "username required";
+    my $pass   = delete $params{password} or croak "password required";
+
+    # validate input
+    my @valid_params = qw( scope expires label token_expires_in );
+    my %post_params;
+    for my $p (@valid_params) {
+        if (    exists $params{$p}
+            and defined $params{$p}
+            and length $params{$p} )
+        {
+            $post_params{$p} = delete $params{$p};
+        }
+    }
+
+    # special case
+    if ( $post_params{expires} ) {
+        $post_params{token_expires_in} = delete $post_params{expires};
+    }
+    $post_params{label} ||= 'null'; # Net::PMP::Credentials requires it be set
+
+    my $uri = $self->get_credentials_uri();
+    my $hash = encode_base64( join( ':', $user, $pass ), '' );
     if ( $self->debug ) {
         warn "POST with $user:$pass => $hash\n";
     }
@@ -260,13 +296,8 @@ sub create_credentials {
     $request->header( 'Content-Type' => 'application/x-www-form-urlencoded' );
 
     # mimic what HTTP::Request::Common does for POST
-    require URI;
     my $url = URI->new('http:');
-    $url->query_form(
-        scope            => $scope,
-        token_expires_in => $expires,
-        label            => $label
-    );
+    $url->query_form(%post_params);
     $request->content( $url->query );
 
     # send request
