@@ -297,6 +297,18 @@ sub uri_for_profile {
     return sprintf( "%s/profiles/%s", $self->host, $profile );
 }
 
+=head2 uri_for_schema(I<schema>)
+
+Returns full URI for I<schema>.
+
+=cut
+
+sub uri_for_schema {
+    my $self = shift;
+    my $schema = shift or croak "schema required";
+    return sprintf( "%s/schemas/%s", $self->host, $schema );
+}
+
 =head2 get(I<uri>)
 
 Issues a GET request on I<uri> and decodes the JSON response into a Perl
