@@ -119,6 +119,17 @@ is_deeply(
 #diag( dump( $coll_doc->as_hash ) );
 #diag( $coll_doc->as_json );
 
+# timezone
+
+ok( my $tzdoc = Net::PMP::Profile->new(
+        title     => 'i am a PST',
+        published => '1972-03-29 06:08:00 -0700',
+    ),
+    "new Doc in PST"
+);
+is( $tzdoc->as_doc->attributes->{published},
+    '1972-03-29T13:08:00.000Z', "published date converted to UTC" );
+
 # media
 ok( my $audio = Net::PMP::Profile::Audio->new(
         title       => 'i am a piece of audio',

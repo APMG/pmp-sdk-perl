@@ -21,6 +21,9 @@ my $coerce_datetime = sub {
         = DateTime::Format::Strptime->new( pattern => '%FT%T.%3NZ' );
     if ( blessed $thing) {
         if ( $thing->isa('DateTime') ) {
+
+            # enforce UTC
+            $thing->set_time_zone('UTC');
             $thing->set_formatter($iso8601_formatter);
             return $thing;
         }
@@ -28,9 +31,12 @@ my $coerce_datetime = sub {
     }
     else {
         my $dt = DateTime::Format::DateParse->parse_datetime($thing);
-        if (!$dt) {
+        if ( !$dt ) {
             confess "Invalid date format: $thing";
         }
+
+        # enforce UTC
+        $dt->set_time_zone('UTC');
         $dt->set_formatter($iso8601_formatter);
         return $dt;
     }
