@@ -8,7 +8,7 @@ has 'teaser'           => ( is => 'rw', isa => 'Str', );
 has 'contentencoded'   => ( is => 'rw', isa => 'Str', );
 has 'contenttemplated' => ( is => 'rw', isa => 'Str', );
 
-sub get_profile_url {'http://api.pmp.io/profiles/story'}
+sub get_profile_url {'https://api.pmp.io/profiles/story'}
 
 1;
 

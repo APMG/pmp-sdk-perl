@@ -12,7 +12,7 @@ has 'enclosure' => (
     coerce   => 1,
 );
 
-sub get_profile_url {'http://api.pmp.io/profiles/media'}
+sub get_profile_url {'https://api.pmp.io/profiles/media'}
 
 1;
 

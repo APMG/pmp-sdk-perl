@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 26;
+use Test::More tests => 28;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Profile');
@@ -108,7 +108,7 @@ is_deeply(
             },
         ],
         profile => [
-            {   href  => "http://api.pmp.io/profiles/base",
+            {   href  => "https://api.pmp.io/profiles/base",
                 title => "Net::PMP::Profile",
             },
         ],
@@ -220,7 +220,7 @@ is_deeply(
             }
         ],
         profile => [
-            {   href  => "http://api.pmp.io/profiles/base",
+            {   href  => "https://api.pmp.io/profiles/base",
                 title => "My::Profile"
             },
         ],

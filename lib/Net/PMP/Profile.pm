@@ -35,7 +35,7 @@ has 'permission' =>
 has 'alternate' =>
     ( is => 'rw', isa => 'Net::PMP::Type::Links', coerce => 1, );
 
-sub get_profile_url   {'http://api.pmp.io/profiles/base'}
+sub get_profile_url   {'https://api.pmp.io/profiles/base'}
 sub get_profile_title { ref(shift) }
 
 # singleton for class

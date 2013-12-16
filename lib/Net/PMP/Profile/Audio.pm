@@ -4,7 +4,7 @@ extends 'Net::PMP::Profile::Media';
 
 our $VERSION = '0.01';
 
-sub get_profile_url {'http://api.pmp.io/profiles/audio'}
+sub get_profile_url {'https://api.pmp.io/profiles/audio'}
 
 1;
 
