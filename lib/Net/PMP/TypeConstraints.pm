@@ -13,8 +13,8 @@ subtype 'Net::PMP::Type::ISO6391' => as 'Str' =>
     message {"The provided hreflang ($_) is not a valid ISO639-1 value."};
 
 # datetimes
-use DateTime::Format::ISO8601;
 use DateTime::Format::Strptime;
+use DateTime::Format::DateParse;
 my $coerce_datetime = sub {
     my $thing = shift;
     my $iso8601_formatter
@@ -27,7 +27,10 @@ my $coerce_datetime = sub {
         confess "$thing is not a DateTime object";
     }
     else {
-        my $dt = DateTime::Format::ISO8601->parse_datetime($thing);
+        my $dt = DateTime::Format::DateParse->parse_datetime($thing);
+        if (!$dt) {
+            confess "Invalid date format: $thing";
+        }
         $dt->set_formatter($iso8601_formatter);
         return $dt;
     }
