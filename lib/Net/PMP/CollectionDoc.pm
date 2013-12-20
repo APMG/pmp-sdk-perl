@@ -383,7 +383,7 @@ sub as_json {
 
 Shortcut for:
 
-  push @{ $doc->links->{item}, $child->as_link_hash;
+  push @{ $doc->links->{item} }, $child->as_link_hash;
 
 =cut
 
