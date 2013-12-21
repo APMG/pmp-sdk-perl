@@ -85,6 +85,12 @@ sub as_doc {
             elsif ( $isa eq 'Net::PMP::Type::Permission' ) {
                 $links{$k} = [ delete $attrs{$k} ];
             }
+            elsif ( $isa eq 'Net::PMP::Type::MediaEnclosures' ) {
+                $links{$k} = delete $attrs{$k};
+            }
+            elsif ( $isa eq 'Net::PMP::Type::MediaEnclosure' ) {
+                $links{$k} = [ delete $attrs{$k} ];
+            }
         }
     }
 

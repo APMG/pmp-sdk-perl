@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 28;
+use Test::More tests => 30;
 use Data::Dump qw( dump );
 
 use_ok('Net::PMP::Profile');
@@ -139,6 +139,25 @@ ok( my $audio = Net::PMP::Profile::Audio->new(
         ]
     ),
     "audio constructor"
+);
+
+ok( my $audio_doc = $audio->as_doc(), "audio->as_doc" );
+
+#diag( dump $audio_doc );
+is_deeply(
+    $audio_doc->links,
+    {   enclosure => [
+            {   href => 'http://mpr.org/some/audio.mp3',
+                type => 'audio/mpeg',
+            }
+        ],
+        profile => [
+            {   href  => "https://api.pmp.io/profiles/audio",
+                title => 'Net::PMP::Profile::Audio',
+            },
+        ],
+    },
+    "Media enclosure recognized as link"
 );
 
 eval {
