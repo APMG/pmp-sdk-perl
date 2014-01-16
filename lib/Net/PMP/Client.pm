@@ -31,7 +31,7 @@ has 'auth_endpoint' =>
 has 'pmp_content_type' => (
     is      => 'rw',
     isa     => 'Str',
-    default => 'application/vnd.pmp.collection.doc+json',
+    default => 'application/vnd.collection.doc+json',
 );
 has 'last_response' => ( is => 'rw', isa => 'HTTP::Response', );
 
@@ -138,7 +138,7 @@ A LWP::UserAgent object.
 
 =item pmp_content_type
 
-Defaults to C<application/vnd.pmp.collection.doc+json>. Change at your peril.
+Defaults to C<application/vnd.collection.doc+json>. Change at your peril.
 
 =back
 
