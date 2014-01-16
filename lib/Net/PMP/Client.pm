@@ -13,7 +13,7 @@ use Net::PMP::Schema;
 use Net::PMP::Credentials;
 use URI;
 
-our $VERSION = '0.01';
+our $VERSION = '0.001';
 
 has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
 has 'host' => (

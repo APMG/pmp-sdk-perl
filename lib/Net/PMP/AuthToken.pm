@@ -14,7 +14,7 @@ use overload
 
 __PACKAGE__->meta->make_immutable();
 
-our $VERSION = '0.01';
+our $VERSION = '0.001';
 
 sub expires_in { shift->token_expires_in(@_) }
 
