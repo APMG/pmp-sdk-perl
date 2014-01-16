@@ -609,9 +609,10 @@ sub search {
 
 =head2 save(I<doc_object>)
 
-Write I<doc_object> to the server. Returns the I<doc_object>
-with its URI updated to reflect the server response. Wraps
-put() internally.
+Write I<doc_object> to the server. I<doc_object> may be a L<Net::PMP::Profile> object,
+in which case the as_doc() method is called on it, or it may be a L<Net::PMP::CollectionDoc> object.
+
+Returns a L<Net::PMP::CollectionDoc> object with its URI updated to reflect the server response. 
 
 =cut
 
