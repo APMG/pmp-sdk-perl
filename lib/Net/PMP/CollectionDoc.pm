@@ -197,7 +197,7 @@ sub get_publish_uri {
         and $self->links->{edit} )
     {
         $edit_link
-            = $self->get_links('edit')->rels('urn:pmp:form:documentsave')
+            = $self->get_links('edit')->rels('urn:collectiondoc:form:documentsave')
             ->[0];
     }
     if ($edit_link) {
@@ -237,7 +237,7 @@ sub set_uri {
     }
     elsif ( $self->links and $self->links->{navigation} ) {
         for my $link ( @{ $self->links->{navigation} } ) {
-            if ( $link->{rel} eq 'urn:pmp:navigation:self' ) {
+            if ( $link->{rel} eq 'urn:collectiondoc:navigation:self' ) {
                 $link->{href} = $uri;
             }
         }

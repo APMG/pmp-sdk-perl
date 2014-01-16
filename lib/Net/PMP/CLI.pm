@@ -263,7 +263,7 @@ List all users.
 
 sub users {
     my $self = shift;
-    my $urn  = "urn:pmp:query:users";
+    my $urn  = "urn:collectiondoc:query:users";
     $self->_list_items( 'User', $urn );
 }
 
@@ -275,7 +275,7 @@ List all groups.
 
 sub groups {
     my $self = shift;
-    my $urn  = "urn:pmp:query:groups";
+    my $urn  = "urn:collectiondoc:query:groups";
     $self->_list_items( 'Group', $urn );
 }
 

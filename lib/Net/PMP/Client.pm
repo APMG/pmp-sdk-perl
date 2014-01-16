@@ -403,7 +403,7 @@ sub _set_home_doc_config {
     $self->{_home_doc} ||= $self->get_doc();
     my $edit_links = $self->{_home_doc}->get_links('edit');
     $self->{_doc_edit_link}
-        = $edit_links->rels("urn:pmp:form:documentsave")->[0];
+        = $edit_links->rels("urn:collectiondoc:form:documentsave")->[0];
 }
 
 =head2 get_doc_edit_link
@@ -582,13 +582,13 @@ Like get_doc() but takes a I<guid> as argument.
 sub get_doc_by_guid {
     my $self = shift;
     my $guid = shift or croak "guid required";
-    return $self->get_doc( $self->{_home_doc}->query('urn:pmp:hreftpl:docs')
+    return $self->get_doc( $self->{_home_doc}->query('urn:collectiondoc:hreftpl:docs')
             ->as_uri( { guid => $guid } ) );
 }
 
 =head2 search( I<opts> [,I<tries>] )
 
-Search in the 'urn:pmp:query:docs' namespace.
+Search in the 'urn:collectiondoc:query:docs' namespace.
 
 Returns a Net::PMP::CollectionDoc object for I<opts>.
 I<opts> are passed directly to the query link URI template.
@@ -603,7 +603,7 @@ sub search {
     my $self  = shift;
     my $opts  = shift or croak "options required";
     my $tries = shift || 1;
-    my $uri = $self->{_home_doc}->query('urn:pmp:query:docs')->as_uri($opts);
+    my $uri = $self->{_home_doc}->query('urn:collectiondoc:query:docs')->as_uri($opts);
     return $self->get_doc( $uri, $tries );
 }
 

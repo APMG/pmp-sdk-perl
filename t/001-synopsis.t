@@ -44,56 +44,43 @@ SKIP: {
 
     is_deeply(
         $query_rel_types,
-        {   "urn:pmp:hreftpl:docs"     => "Access documents",
-            "urn:pmp:hreftpl:profiles" => "Access profiles",
-            "urn:pmp:hreftpl:schemas"  => "Access schemas",
-            "urn:pmp:query:docs"       => "Query for documents",
-            "urn:pmp:query:groups"     => "Query for groups",
-            "urn:pmp:query:guids"      => "Generate guids",
-            "urn:pmp:query:profiles"   => "Query for profiles",
-            "urn:pmp:query:schemas"    => "Query for schemas",
-            "urn:pmp:query:users"      => "Query for users",
+        {   "urn:collectiondoc:hreftpl:docs"     => "Access documents",
+            "urn:collectiondoc:hreftpl:profiles" => "Access profiles",
+            "urn:collectiondoc:hreftpl:schemas"  => "Access schemas",
+            "urn:collectiondoc:query:docs"       => "Query for documents",
+            "urn:collectiondoc:query:groups"     => "Query for groups",
+            "urn:collectiondoc:query:guids"      => "Generate guids",
+            "urn:collectiondoc:query:profiles"   => "Query for profiles",
+            "urn:collectiondoc:query:schemas"    => "Query for schemas",
+            "urn:collectiondoc:query:users"      => "Query for users",
         },
         "got expected rel types"
     );
 
-    ok( my $query_options = $doc->query('urn:pmp:query:docs')->options(),
-        "query->options" );
+    ok( my $query_options
+            = $doc->query('urn:collectiondoc:query:docs')->options(),
+        "query->options"
+    );
 
     #diag( dump $query_options );
 
     is_deeply(
         $query_options,
-        {   author =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            collection =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            distributor =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            distributorgroup =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            enddate =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            guid =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            has =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            language =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            limit =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            offset =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            profile =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            searchsort =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            startdate =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            tag =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
-            text =>
-                "https://github.com/publicmediaplatform/pmpdocs/wiki/Content-Retrieval",
+        {   author           => "http://docs.pmp.io/wiki/Content-Retrieval",
+            collection       => "http://docs.pmp.io/wiki/Content-Retrieval",
+            distributor      => "http://docs.pmp.io/wiki/Content-Retrieval",
+            distributorgroup => "http://docs.pmp.io/wiki/Content-Retrieval",
+            enddate          => "http://docs.pmp.io/wiki/Content-Retrieval",
+            guid             => "http://docs.pmp.io/wiki/Content-Retrieval",
+            has              => "http://docs.pmp.io/wiki/Content-Retrieval",
+            language         => "http://docs.pmp.io/wiki/Content-Retrieval",
+            limit            => "http://docs.pmp.io/wiki/Content-Retrieval",
+            offset           => "http://docs.pmp.io/wiki/Content-Retrieval",
+            profile          => "http://docs.pmp.io/wiki/Content-Retrieval",
+            searchsort       => "http://docs.pmp.io/wiki/Content-Retrieval",
+            startdate        => "http://docs.pmp.io/wiki/Content-Retrieval",
+            tag              => "http://docs.pmp.io/wiki/Content-Retrieval",
+            text             => "http://docs.pmp.io/wiki/Content-Retrieval",
         },
         "got expected query options"
     );
