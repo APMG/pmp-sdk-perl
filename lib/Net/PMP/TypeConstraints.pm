@@ -63,6 +63,11 @@ subtype 'Net::PMP::Type::Href' => as 'Str' => where {
     is_uri($_);
 } => message {"Value ($_) is not a valid href."};
 
+# GUIDs
+subtype 'Net::PMP::Type::GUID' => as 'Str' => where {
+    m/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
+} => message {"Value ($_) does not look like a valid guid."};
+
 no Mouse::Util::TypeConstraints;
 
 __PACKAGE__->meta->make_immutable();
