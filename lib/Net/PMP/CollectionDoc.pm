@@ -7,6 +7,7 @@ use Net::PMP::CollectionDoc::Items;
 use UUID::Tiny ':std';
 use JSON;
 
+has 'href'       => ( is => 'ro', isa => 'Str', );
 has 'links'      => ( is => 'ro', isa => 'HashRef', required => 1, );
 has 'attributes' => ( is => 'ro', isa => 'HashRef', required => 0, );
 has 'version' =>
@@ -82,7 +83,7 @@ sub get_links {
 =head2 get_items
 
 Returns L<Net::PMP::CollectionDoc::Items> object, unlike the B<items>
-accessor method, which returns the raw hashref.
+accessor method, which returns the raw arrayref.
 
 =cut
 
@@ -104,6 +105,8 @@ sub get_items {
 =head2 has_items
 
 Returns total number of items this CollectionDoc refers to.
+B<NOTE> this is not the current result set, but the server-side total.
+I.e., paging is ignored.
 
 =cut
 
@@ -166,6 +169,7 @@ representing this CollectionDoc.
 
 sub get_uri {
     my $self = shift;
+    if ( $self->href ) { return $self->href }
     if ( $self->links and $self->links->{navigation} ) {
         my $nav      = $self->get_links('navigation');
         my $nav_self = $nav->rels('self')->[0];
@@ -197,8 +201,8 @@ sub get_publish_uri {
         and $self->links->{edit} )
     {
         $edit_link
-            = $self->get_links('edit')->rels('urn:collectiondoc:form:documentsave')
-            ->[0];
+            = $self->get_links('edit')
+            ->rels('urn:collectiondoc:form:documentsave')->[0];
     }
     if ($edit_link) {
         my $guid = $self->get_guid() || $self->create_guid();
