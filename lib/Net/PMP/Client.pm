@@ -317,6 +317,19 @@ sub create_credentials {
     return Net::PMP::Credentials->new($creds);
 }
 
+=head2 uri_for_doc(I<guid>)
+
+Returns full URI for I<guid>.
+
+=cut
+
+sub uri_for_doc {
+    my $self = shift;
+    my $guid = shift or croak "guid required";
+    return $self->{_home_doc}->query('urn:collectiondoc:hreftpl:docs')
+        ->as_uri( { guid => $guid } );
+}
+
 =head2 uri_for_profile(I<profile>)
 
 Returns full URI for I<profile>.
@@ -582,8 +595,7 @@ Like get_doc() but takes a I<guid> as argument.
 sub get_doc_by_guid {
     my $self = shift;
     my $guid = shift or croak "guid required";
-    return $self->get_doc( $self->{_home_doc}->query('urn:collectiondoc:hreftpl:docs')
-            ->as_uri( { guid => $guid } ) );
+    return $self->get_doc( $self->uri_for_doc($guid) );
 }
 
 =head2 search( I<opts> [,I<tries>] )
@@ -603,7 +615,8 @@ sub search {
     my $self  = shift;
     my $opts  = shift or croak "options required";
     my $tries = shift || 1;
-    my $uri = $self->{_home_doc}->query('urn:collectiondoc:query:docs')->as_uri($opts);
+    my $uri   = $self->{_home_doc}->query('urn:collectiondoc:query:docs')
+        ->as_uri($opts);
     return $self->get_doc( $uri, $tries );
 }
 

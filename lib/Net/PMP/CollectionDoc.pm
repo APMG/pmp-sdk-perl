@@ -309,10 +309,12 @@ internally.
 sub as_hash {
     my $self = shift;
     my %hash;
-    for my $m (qw( version attributes )) {
+    for my $m (qw( version attributes href )) {
         next if !defined $self->$m;
         $hash{$m} = $self->$m;
     }
+
+    $hash{href} ||= "";   # TODO schema requires this??
 
     # items are Docs
     # but top-level "items" are just convenience.
