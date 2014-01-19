@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 use Test::More;
 
 unless ( $ENV{RELEASE_TESTING} ) { 
-    plan( skip_all => "Author tests not required for installation" );
+    plan( skip_all => "RELEASE_TESTING not set. Author tests not required for installation" );
 }
 
 # Ensure a recent version of Test::Pod
