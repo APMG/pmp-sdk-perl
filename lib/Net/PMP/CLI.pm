@@ -113,8 +113,11 @@ sub _list_items {
     while ( my $item = $items->next ) {
         my $profile = $item->get_profile;
         $profile =~ s,^.+/,,;
-        printf( "%s [%s]: %s [%s]\n",
-            $label, $profile, $item->get_title, $item->get_uri, );
+        printf(
+            "%s [%s]: %s [%s]\n",
+            $label, $profile, ( $item->get_title || '[missing title]' ),
+            $item->get_uri,
+        );
         if ( $item->has_items ) {
             my $iitems = $item->get_items;
             while ( my $iitem = $iitems->next ) {
