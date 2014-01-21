@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Net::PMP::Client;
+use Config::Any;
+use Data::Dump qw( dump );
+
+my $usage = "$0 client_id client_secret\n";
+my ( $client_id, $client_secret ) = @ARGV;
+if ( !$client_id or !$client_secret ) {
+    die $usage;
+}
+
+# use same config file as pmpc to init client
+my $cfg
+    = Config::Any->load_files(
+    { files => [ $ENV{HOME} . '/.pmp.yaml' ], use_ext => 1, } );
+
+#dump $cfg;
+my ( $cfgfile, $config ) = %{ $cfg->[0] };
+my $client = Net::PMP::Client->new(
+    id     => $client_id,
+    secret => $client_secret,
+    host   => $config->{host} || 'https://api-sandbox.pmp.io',
+    debug  => $config->{debug} || $ENV{PMP_CLIENT_DEBUG},
+);
+
+$client->revoke_token();
+printf("token revoked\n");

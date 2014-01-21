@@ -1,0 +1,40 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Net::PMP::Client;
+use Config::Any;
+use Data::Dump qw( dump );
+
+my $usage = "$0 username password role\n";
+my ( $un, $pw, $role ) = @ARGV;
+if ( !$un or !$pw or !$role ) {
+    die $usage;
+}
+
+# use same config file as pmpc to init client
+my $cfg
+    = Config::Any->load_files( { files => [ $ENV{HOME} . '/.pmp.yaml' ] } );
+
+#dump $cfg;
+my ( $cfgfile, $config ) = %{ $cfg->[0] };
+my $client = Net::PMP::Client->new(
+    id     => $config->{id},
+    secret => $config->{secret},
+    host   => $config->{host} || 'https://api-sandbox.pmp.io',
+    debug  => $config->{debug} || $ENV{PMP_CLIENT_DEBUG},
+);
+my $user = Net::PMP::CollectionDoc->new(
+    version    => $client->get_doc->version,
+    attributes => {
+        tags  => [qw( pmp_sdk_user )],
+        title => 'pmp_sdk_user ' . $un,
+        auth  => {
+            user     => $un,
+            password => $pw,
+        },
+    },
+    links => { profile => [ { href => $client->uri_for_profile('user') } ] },
+);
+
+$client->save($user);
+printf( "user %s saved at %s\n", $un, $user->get_uri );
