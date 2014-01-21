@@ -26,8 +26,6 @@ has 'id'     => ( is => 'rw', isa => 'Str',  required => 1, );
 has 'secret' => ( is => 'rw', isa => 'Str',  required => 1, );
 has 'debug'  => ( is => 'rw', isa => 'Bool', default  => 0, );
 has 'ua' => ( is => 'rw', isa => 'LWP::UserAgent', builder => '_init_ua', );
-has 'auth_endpoint' =>
-    ( is => 'rw', isa => 'Str', default => '/auth/access_token', );
 has 'pmp_content_type' => (
     is      => 'rw',
     isa     => 'Str',
@@ -150,10 +148,24 @@ Internal method for object construction.
 
 Returns the most recent HTTP::Response object. Useful for debugging client behaviour.
 
+=head2 get_home_doc
+
+Returns the CollectionDoc for the API root. This object is cached for performance reasons.
+
+=cut
+
+sub get_home_doc {
+    my $self = shift;
+    return $self->{_home_doc};
+}
+
 =head2 get_token([I<refresh>])
 
 Returns a Net::PMP::AuthToken object. The optional I<refresh> boolean indicates
 that the Client should ignore any cached token and fetch a fresh one.
+
+If get_home_doc() is undefined (i.e., no initial access has been attempted),
+then this method will return undef.
 
 =cut
 
@@ -173,9 +185,19 @@ sub get_token {
     }
 
     # fetch new token
-    my $uri     = $self->host . $self->auth_endpoint;
+    my $home_doc = $self->get_home_doc();
+
+    # we have a chicken-and-egg situation on the first home doc request,
+    # but the home doc doesn't require a token,
+    # so just skip it if not defined.
+    if ( !$home_doc ) {
+        return;
+    }
+    my $auth_links = $home_doc->get_links('auth');
+    my $uri
+        = $auth_links->rels('urn:collectiondoc:form:issuetoken')->[0]->href;
     my $request = HTTP::Request->new( POST => $uri );
-    my $hash    = encode_base64( join( ':', $self->id, $self->secret ), '' );
+    my $hash = encode_base64( join( ':', $self->id, $self->secret ), '' );
     $request->header( 'Accept'       => 'application/json' );
     $request->header( 'Content-Type' => 'application/x-www-form-urlencoded' );
     $request->header( 'Authorization' => 'Basic ' . $hash );
@@ -206,9 +228,10 @@ Expires the currently active AuthToken.
 =cut
 
 sub revoke_token {
-    my $self = shift;
-    my $uri  = $self->get_credentials_uri();
-    $uri->path( $self->auth_endpoint );
+    my $self       = shift;
+    my $auth_links = $self->get_home_doc()->get_links('auth');
+    my $uri
+        = $auth_links->rels('urn:collectiondoc:form:revoketoken')->[0]->href;
     my $hash = encode_base64( join( ':', $self->id, $self->secret ), '' );
     my $request = HTTP::Request->new( DELETE => $uri );
     $request->header( 'Authorization' => 'Basic ' . $hash );
@@ -228,9 +251,6 @@ Returns the URI for the Credentials API.
 =cut
 
 sub get_credentials_uri {
-
-    # TODO use root doc authentication hints when they exist
-    # see https://github.com/publicmediaplatform/pmpcode/issues/78
     my $self = shift;
     if ( $self->host =~ m/api-sandbox/ ) {
         return URI->new('https://publish-sandbox.pmp.io/auth/credentials');
@@ -317,6 +337,48 @@ sub create_credentials {
     return Net::PMP::Credentials->new($creds);
 }
 
+=head2 delete_credentials( I<params> )
+
+Deletes credentials at the server.
+
+I<params> should consist of:
+
+=over
+
+=item username
+
+=item password
+
+=item client_id
+
+=back
+
+=cut
+
+sub delete_credentials {
+    my $self      = shift;
+    my %params    = @_;
+    my $user      = $params{username} or croak "username required";
+    my $pass      = $params{password} or croak "password required";
+    my $client_id = $params{client_id} or croak "client_id required";
+
+    my $uri     = $self->get_credentials_uri() . '/' . $client_id;
+    my $hash    = encode_base64( join( ':', $user, $pass ), '' );
+    my $request = HTTP::Request->new( DELETE => $uri );
+    $request->header( 'Authorization' => 'Basic ' . $hash );
+    $request->header( 'Accept'        => 'application/json' );
+    $request->header( 'Content-Type'  => $self->pmp_content_type );
+
+    # send request
+    my $response = $self->ua->request($request);
+    if ( $response->code != 204 ) {
+        croak "Invalid response from authn server: " . $response->status_line;
+    }
+    $self->last_response($response);
+
+    return $response;
+}
+
 =head2 uri_for_doc(I<guid>)
 
 Returns full URI for I<guid>.
@@ -371,11 +433,16 @@ sub get {
     my $self    = shift;
     my $uri     = shift or croak "uri required";
     my $request = HTTP::Request->new( GET => $uri );
-    my $token   = $self->get_token();
     $request->header(
         'Accept' => 'application/json; ' . $self->pmp_content_type, );
-    $request->header( 'Authorization' =>
-            sprintf( '%s %s', $token->token_type, $token->access_token ) );
+
+    # the initial GET of home doc does not require a token.
+    my $token = $self->get_token();
+    if ($token) {
+        $request->header( 'Authorization' =>
+                sprintf( '%s %s', $token->token_type, $token->access_token )
+        );
+    }
     my $response = $self->ua->request($request);
 
     # retry if 401
