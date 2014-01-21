@@ -291,7 +291,7 @@ SKIP: {
 
     # sandbox can have some delay in sync
     diag("sleeping a few seconds to let the server search sync with db...");
-    sleep(10);
+    sleep(20);
 
     # org1 should see doc1, doc2, doc3
     # org2 should see doc1, doc3
