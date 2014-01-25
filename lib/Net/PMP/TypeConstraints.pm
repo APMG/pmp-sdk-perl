@@ -1,6 +1,7 @@
 package Net::PMP::TypeConstraints;
 use Mouse;
 use Mouse::Util::TypeConstraints;
+use Data::Dump qw( dump );
 
 # The Net::PMP::Type::* prefix is used for all our type constraints
 # to avoid stepping on anyone's toes
@@ -61,7 +62,8 @@ coerce 'Net::PMP::Type::Permissions' => from 'ArrayRef' => via {
 use Data::Validate::URI qw(is_uri);
 subtype 'Net::PMP::Type::Href' => as 'Str' => where {
     is_uri($_);
-} => message {"Value ($_) is not a valid href."};
+} => message { "Value " . dump($_) . " is not a valid href." };
+coerce 'Net::PMP::Type::Href' => from 'Object' => via {"$_"};
 
 # GUIDs
 subtype 'Net::PMP::Type::GUID' => as 'Str' => where {
