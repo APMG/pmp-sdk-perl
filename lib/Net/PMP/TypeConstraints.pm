@@ -15,6 +15,9 @@ my $coerce_link = sub {
     if ( ref( $_[0] ) eq 'HASH' ) {
         return Net::PMP::CollectionDoc::Link->new( $_[0] );
     }
+    elsif ( blessed $_[0] and $_[0]->isa('URI') ) {
+        return Net::PMP::CollectionDoc::Link->new( href => $_[0] . "" );
+    }
     elsif ( blessed $_[0] ) {
         return $_[0];
     }
@@ -23,9 +26,16 @@ my $coerce_link = sub {
     }
 };
 subtype 'Net::PMP::Type::Link' =>
-    as class_type('Net::PMP::CollectionDoc::Link');
+    as class_type('Net::PMP::CollectionDoc::Link') => message {
+    'Value ' . dump($_) . ' is not a valid Net::PMP::CollectionDoc::Link';
+    };
 coerce 'Net::PMP::Type::Link' => from 'Any' => via { $coerce_link->($_) };
-subtype 'Net::PMP::Type::Links' => as 'ArrayRef[Net::PMP::Type::Link]';
+subtype 'Net::PMP::Type::Links' => as 'ArrayRef[Net::PMP::Type::Link]' =>
+    message {
+    'Value '
+        . dump($_)
+        . ' is not a valid ArrayRef of type Net::PMP::Type::Link';
+    };
 coerce 'Net::PMP::Type::Links' => from 'ArrayRef' => via {
     [ map { $coerce_link->($_) } @$_ ];
 } => from 'HashRef' => via { [ $coerce_link->($_) ] } => from 'Any' =>
