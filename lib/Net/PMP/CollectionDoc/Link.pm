@@ -91,7 +91,12 @@ Net::PMP::CollectionDoc::Link - link from a Net::PMP::CollectionDoc::Links objec
 
 =head1 SYNOPSIS
 
- # TODO
+ my $doc = $pmp_client->get_doc( $some_uri );
+ my $query_links = $doc->get_links('query');
+ my $query_for_docs = $query_links->rels("urn:collectiondoc:query:docs");
+ for my $link (@$query_for_docs) {
+     printf("link: %s [%s]\n", $link->title, $link->href);
+ }
 
 =head1 DESCRIPTION
 

@@ -68,7 +68,9 @@ Net::PMP::CollectionDoc::Items - items from a Net::PMP::CollectionDoc
 
 =head1 SYNOPSIS
 
- # TODO
+ my $results = $pmp_client->search({ tag => 'foo' });
+ my $items   = $results->get_items();
+ # $items isa Net::PMP::CollectionDoc::Items
 
 =head1 METHODS
 
