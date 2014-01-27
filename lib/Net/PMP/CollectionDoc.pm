@@ -314,7 +314,8 @@ sub as_hash {
         $hash{$m} = $self->$m;
     }
 
-    $hash{href} ||= "";   # TODO schema requires this??
+    # must be defined but can be blank and server will set it
+    $hash{href} ||= "";
 
     # items are Docs
     # but top-level "items" are just convenience.
@@ -336,6 +337,7 @@ sub as_hash {
     $hash{links}->{profile} = $self->links->{profile};
     if ( $self->get_uri and !$self->get_self_uri ) {
         $hash{links}->{self} = [ { href => $self->get_uri } ];
+        $hash{href} ||= $self->get_uri;
     }
 
     # TODO add any read-only links that come from the server
