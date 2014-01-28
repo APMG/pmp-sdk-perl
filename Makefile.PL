@@ -10,6 +10,7 @@ all_from 'lib/Net/PMP.pm';
 requires 'Mouse'                       => 0;
 requires 'MouseX::SimpleConfig'        => 0;
 requires 'MouseX::Getopt'              => 0;
+requires 'Try::Tiny'                   => 0;
 requires 'Test::More'                  => 0;
 requires 'JSON'                        => 2.0;
 requires 'LWP::UserAgent'              => 0;

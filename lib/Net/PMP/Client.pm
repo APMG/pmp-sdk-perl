@@ -12,6 +12,7 @@ use Net::PMP::CollectionDoc;
 use Net::PMP::Schema;
 use Net::PMP::Credentials;
 use URI;
+use Try::Tiny;
 
 our $VERSION = '0.001';
 
@@ -211,11 +212,12 @@ sub get_token {
     $self->last_response($response);
 
     # unpack response
-    my $token;
-    eval { $token = decode_json( $response->decoded_content ); };
-    if ($@) {
-        croak "Invalid authn response: " . $response->decoded_content;
+    my $token = try {
+        decode_json( $response->decoded_content );
     }
+    catch {
+        croak "Invalid authn response: " . $response->decoded_content;
+    };
     $self->{_token}         = Net::PMP::AuthToken->new($token);
     $self->{_last_token_ts} = time();
     return $self->{_token};
@@ -329,11 +331,12 @@ sub create_credentials {
     $self->last_response($response);
 
     # unpack response
-    my $creds;
-    eval { $creds = decode_json( $response->decoded_content ); };
-    if ($@) {
-        croak "Invalid authn response: " . $response->decoded_content;
+    my $creds = try {
+        decode_json( $response->decoded_content );
     }
+    catch {
+        croak "Invalid authn response: " . $response->decoded_content;
+    };
     return Net::PMP::Credentials->new($creds);
 }
 
@@ -470,11 +473,12 @@ sub get {
         croak "Unexpected response for GET $uri: " . $response->status_line;
     }
 
-    my $json;
-    eval { $json = decode_json( $response->decoded_content ); };
-    if ($@) {
-        croak "Invalid JSON in response: $@ : " . $response->decoded_content;
+    my $json = try {
+        decode_json( $response->decoded_content );
     }
+    catch {
+        croak "Invalid JSON in response: $@ : " . $response->decoded_content;
+    };
     return $json;
 }
 
@@ -551,11 +555,12 @@ sub put {
             $uri, $response->status_line, $response->content );
     }
 
-    my $json;
-    eval { $json = decode_json( $response->decoded_content ); };
-    if ($@) {
-        croak "Invalid JSON in response: $@ : " . $response->decoded_content;
+    my $json = try {
+        decode_json( $response->decoded_content );
     }
+    catch {
+        croak "Invalid JSON in response: $_ : " . $response->decoded_content;
+    };
     return $json;
 }
 
