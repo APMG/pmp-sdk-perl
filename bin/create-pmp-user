@@ -13,7 +13,8 @@ if ( !$un or !$pw or !$role ) {
 
 # use same config file as pmpc to init client
 my $cfg
-    = Config::Any->load_files( { files => [ $ENV{HOME} . '/.pmp.yaml' ] } );
+    = Config::Any->load_files(
+    { files => [ $ENV{HOME} . '/.pmp.yaml' ], use_ext => 1, } );
 
 #dump $cfg;
 my ( $cfgfile, $config ) = %{ $cfg->[0] };
@@ -26,8 +27,8 @@ my $client = Net::PMP::Client->new(
 my $user = Net::PMP::CollectionDoc->new(
     version    => $client->get_doc->version,
     attributes => {
-        tags  => [qw( pmp_sdk_user )],
-        title => 'pmp_sdk_user ' . $un,
+        tags  => [qw( created_by_net_pmp_perl )],
+        title => $un,
         auth  => {
             user     => $un,
             password => $pw,
