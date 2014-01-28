@@ -59,6 +59,10 @@ sub _getopt_full_usage {
     $usage->die( { post_text => $self->commands } );
 }
 
+sub _usage_format {
+    return "usage: %c command %o";
+}
+
 sub run {
     my $self = shift;
 
@@ -67,7 +71,7 @@ sub run {
     my @cmds = @{ $self->extra_argv };
 
     if ( !@cmds or $self->help_flag ) {
-        $self->usage->die();
+        $self->usage->die( { post_text => $self->commands } );
     }
 
     for my $cmd (@cmds) {
