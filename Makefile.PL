@@ -14,6 +14,7 @@ requires 'Try::Tiny'                   => 0;
 requires 'Test::More'                  => 0;
 requires 'JSON'                        => 2.0;
 requires 'LWP::UserAgent'              => 0;
+requires 'LWP::Protocol::https'        => 0;
 requires 'Data::Dump'                  => 0;
 requires 'URI'                         => 0;
 requires 'URI::Template'               => 0;
