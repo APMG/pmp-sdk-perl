@@ -98,6 +98,7 @@ sub commands {
     my $txt  = <<EOF;
 commands:
     search  --query tag=foo --query text=bar --query limit=100
+    delete_by_search --query tag=foo --query text=bar --query limit=100
     add     --parent <guid> --child <guid>
     create  --profile <profile> --title <title> --tags foo --tags bar
     delete  --guid <guid>
@@ -154,6 +155,25 @@ sub search {
         $profile =~ s,^.+/,,;
         printf( "%s: %s [%s]\n",
             $profile, $item->get_title, $item->get_uri, );
+    }
+}
+
+=head2 delete_by_search( I<query> )
+
+Execute search for I<query> and deletes the results.
+
+=cut
+
+sub delete_by_search {
+    my $self   = shift;
+    my $query  = $self->query or die "--query required for search\n";
+    my $client = $self->init_client();
+    my $res    = $client->search($query) or return;
+    my $items  = $res->get_items();
+    while ( my $item = $items->next ) {
+        if ( $client->delete($item) ) {
+            printf( "Deleted %s\n", $item->get_uri );
+        }
     }
 }
 
