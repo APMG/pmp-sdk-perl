@@ -7,25 +7,28 @@ use Net::PMP::Client;
 use Data::Dump qw( dump );
 
 has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
-has 'debug'       => ( is      => 'rw', isa => 'Bool', );
-has 'id'          => ( is      => 'rw', isa => 'Str', required => 1, );
-has 'secret'      => ( is      => 'rw', isa => 'Str', required => 1, );
+
+# keep attributes sorted as usage prints in this order
+has 'child'   => ( is => 'rw', isa => 'Str', );
+has 'debug'   => ( is => 'rw', isa => 'Bool', );
+has 'expires' => ( is => 'rw', isa => 'Str' );
+has 'guid'    => ( is => 'rw', isa => 'Str', );
 has 'host' =>
     ( is => 'rw', isa => 'Str', default => 'https://api-sandbox.pmp.io', );
-has 'profile' => ( is => 'rw', isa => 'Str' );
-has 'title'   => ( is => 'rw', isa => 'Str', );
-has 'path'    => ( is => 'rw', isa => 'Str', );
-has 'guid'    => ( is => 'rw', isa => 'Str', );
+has 'id' => ( is => 'rw', isa => 'Str', required => 1, );
+has 'label'   => ( is => 'rw', isa => 'Str' );
+has 'limit'   => ( is => 'rw', isa => 'Int' );
 has 'parent'  => ( is => 'rw', isa => 'Str', );
-has 'child'   => ( is => 'rw', isa => 'Str', );
+has 'pass'    => ( is => 'rw', isa => 'Str' );
+has 'path'    => ( is => 'rw', isa => 'Str', );
+has 'profile' => ( is => 'rw', isa => 'Str' );
+has 'query'   => ( is => 'rw', isa => 'HashRef', );
+has 'scope'   => ( is => 'rw', isa => 'Str' );
+has 'secret'  => ( is => 'rw', isa => 'Str', required => 1, );
 has 'tag'     => ( is => 'rw', isa => 'Str', );
 has 'tags'    => ( is => 'rw', isa => 'ArrayRef', );
-has 'query'   => ( is => 'rw', isa => 'HashRef', );
+has 'title'   => ( is => 'rw', isa => 'Str', );
 has 'user'    => ( is => 'rw', isa => 'Str' );
-has 'pass'    => ( is => 'rw', isa => 'Str' );
-has 'scope'   => ( is => 'rw', isa => 'Str' );
-has 'expires' => ( is => 'rw', isa => 'Str' );
-has 'label'   => ( is => 'rw', isa => 'Str' );
 
 =head1 NAME
 
@@ -248,10 +251,18 @@ sub delete_by_tag {
     my $self = shift;
     my $tag = shift || $self->tag;
     defined $tag or die "--tag required for delete_by_tag\n";
+
+    # optional profile if defined
+    my $profile = $self->profile;
+    my $limit = $self->limit || 100;
+
+    my %args = ( tag => $tag, limit => $limit );
+    if ($profile) {
+        $args{profile} = $profile;
+    }
     my $client = $self->init_client;
 
-    # TODO arbitrary limit
-    my $matches = $client->search( { tag => $tag, limit => 100, } );
+    my $matches = $client->search( \%args );
     if ($matches) {
         my $res = $matches->get_items();
         while ( my $item = $res->next ) {
