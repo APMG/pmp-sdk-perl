@@ -5,11 +5,15 @@ use Net::PMP::Client;
 use Config::Any;
 use Data::Dump qw( dump );
 
-my $usage = "$0 username password role\n";
-my ( $un, $pw, $role ) = @ARGV;
+# TODO Getopt
+my $usage = "$0 username password role [email] [title]\n";
+my ( $un, $pw, $role, $email, $title ) = @ARGV;
 if ( !$un or !$pw or !$role ) {
     die $usage;
 }
+
+$title ||= $un;
+$email ||= '';
 
 # use same config file as pmpc to init client
 my $cfg
@@ -28,7 +32,8 @@ my $user = Net::PMP::CollectionDoc->new(
     version    => $client->get_doc->version,
     attributes => {
         tags  => [qw( created_by_net_pmp_perl )],
-        title => $un,
+        title => $title,
+        email => $email,
         auth  => {
             user     => $un,
             password => $pw,
