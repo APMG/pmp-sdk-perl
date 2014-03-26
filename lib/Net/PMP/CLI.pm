@@ -7,6 +7,8 @@ use Net::PMP::Client;
 use JSON;
 use Data::Dump qw( dump );
 
+our $VERSION = '0.001';
+
 has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
 
 # keep attributes sorted as usage prints in this order

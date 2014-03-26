@@ -5,6 +5,8 @@ use Data::Dump qw( dump );
 use URI::Template;
 use Net::PMP::TypeConstraints;
 
+our $VERSION = '0.001';
+
 has 'hints'      => ( is => 'rw', isa => 'HashRef' );
 has 'template'   => ( is => 'rw', isa => 'Str' );
 has 'vars'       => ( is => 'rw', isa => 'HashRef' );

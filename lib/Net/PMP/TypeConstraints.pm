@@ -3,6 +3,8 @@ use Mouse;
 use Mouse::Util::TypeConstraints;
 use Data::Dump qw( dump );
 
+our $VERSION = '0.001';
+
 # The Net::PMP::Type::* prefix is used for all our type constraints
 # to avoid stepping on anyone's toes
 

@@ -4,6 +4,8 @@ use Carp;
 use Data::Dump qw( dump );
 extends 'Net::PMP::CollectionDoc';
 
+our $VERSION = '0.001';
+
 __PACKAGE__->meta->make_immutable();
 
 1;

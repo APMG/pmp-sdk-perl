@@ -4,6 +4,9 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Net::PMP::CLI;
+
+our $VERSION = $Net::PMP::CLI::VERSION;
+
 my $app = Net::PMP::CLI->new_with_options();
 $app->run();
 exit(0);

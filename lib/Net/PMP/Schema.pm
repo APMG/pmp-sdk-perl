@@ -3,6 +3,8 @@ use Mouse;
 use Carp;
 use Data::Dump qw( dump );
 
+our $VERSION = '0.001';
+
 has 'definitions' => ( is => 'ro', isa => 'HashRef', required => 1, );
 has 'description' => ( is => 'ro', isa => 'Str',     required => 1, );
 has 'id'          => ( is => 'ro', isa => 'Str',     required => 1, );

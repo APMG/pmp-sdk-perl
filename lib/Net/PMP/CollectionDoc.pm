@@ -7,6 +7,8 @@ use Net::PMP::CollectionDoc::Items;
 use UUID::Tiny ':std';
 use JSON;
 
+our $VERSION = '0.001';
+
 has 'href'       => ( is => 'ro', isa => 'Str', );
 has 'links'      => ( is => 'ro', isa => 'HashRef', required => 1, );
 has 'attributes' => ( is => 'ro', isa => 'HashRef', required => 0, );

@@ -5,6 +5,8 @@ use Data::Dump qw( dump );
 use Net::PMP::CollectionDoc::Link;
 use Net::PMP::CollectionDoc::Permission;
 
+our $VERSION = '0.001';
+
 has 'links' => (
     is       => 'rw',
     isa      => 'ArrayRef',

@@ -4,6 +4,8 @@ use Carp;
 use Data::Dump qw( dump );
 use Net::PMP::CollectionDoc::Item;
 
+our $VERSION = '0.001';
+
 has 'items' => ( is => 'rw', isa => 'ArrayRef', required => 1 );
 has 'total' => ( is => 'ro', isa => 'Int',      required => 1 );
 has 'navlinks' => ( is => 'ro', isa => 'Object', );
