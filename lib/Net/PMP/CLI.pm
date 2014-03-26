@@ -4,6 +4,7 @@ with 'MouseX::SimpleConfig';
 with 'MouseX::Getopt';
 
 use Net::PMP::Client;
+use JSON;
 use Data::Dump qw( dump );
 
 has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
@@ -12,6 +13,7 @@ has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
 has 'child'   => ( is => 'rw', isa => 'Str', );
 has 'debug'   => ( is => 'rw', isa => 'Bool', );
 has 'expires' => ( is => 'rw', isa => 'Str' );
+has 'file'    => ( is => 'rw', isa => 'Str' );
 has 'guid'    => ( is => 'rw', isa => 'Str', );
 has 'host' =>
     ( is => 'rw', isa => 'Str', default => 'https://api-sandbox.pmp.io', );
@@ -105,6 +107,7 @@ commands:
     delete_by_tag --tag foo
     get     --path /path/to/resource
     groups
+    put     --file /path/to/resource.json
     users
 EOF
     return $txt;
@@ -342,6 +345,44 @@ sub get {
     else {
         dump $doc;
     }
+}
+
+=head2 put([I<filename>])
+
+Reads I<filename> and PUTs it to the server. If missing, the file()
+attribute will be checked instead.
+
+I<filename> should represent a ready-to-save CollectionDoc in JSON format.
+A simple string substitution will be performed, replacing C<${HOSTNAME}> with
+the base PMP host for the configured environment.
+
+=cut
+
+sub put {
+    my $self = shift;
+    my $filename = shift || $self->file();
+    if ( !$filename ) {
+        die "--path required for put\n";
+    }
+    my $client   = $self->init_client;
+    my $hostname = $client->host;
+
+    # slurp file
+    my $fh = IO::File->new("< $filename")
+        or die "Can't read file $filename: $!";
+    local $/;
+    my $buf = <$fh>;
+
+    # string sub
+    $buf =~ s/\$\{HOSTNAME\}/$hostname/g;
+
+    # decode as hashref
+    my $json = decode_json($buf);
+
+    # write it
+    my $doc = Net::PMP::CollectionDoc->new($json);
+    $client->save($doc);
+    printf( "%s saved as %s\n", $filename, $doc->get_uri() );
 }
 
 =head2 add( I<parent_doc>, I<child_doc> )
