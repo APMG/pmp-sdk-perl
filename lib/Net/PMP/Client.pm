@@ -485,6 +485,9 @@ sub get {
 sub _set_home_doc_config {
     my $self = shift;
     $self->{_home_doc} ||= $self->get_doc();
+    if (!$self->{_home_doc}) {
+        confess "Failed to GET home doc from " . $self->host;
+    }
     my $edit_links = $self->{_home_doc}->get_links('edit');
     $self->{_doc_edit_link}
         = $edit_links->rels("urn:collectiondoc:form:documentsave")->[0];
