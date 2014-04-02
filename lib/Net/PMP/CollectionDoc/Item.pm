@@ -6,7 +6,8 @@ extends 'Net::PMP::CollectionDoc';
 
 our $VERSION = '0.001';
 
-__PACKAGE__->meta->make_immutable();
+# do NOT make immutable. somehow this breaks subclassing of CollectionDoc
+#__PACKAGE__->meta->make_immutable();
 
 1;
 
