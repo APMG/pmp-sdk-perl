@@ -7,9 +7,9 @@ use 5.008003;
 name 'Net-PMP';
 all_from 'lib/Net/PMP.pm';
 
-requires 'Mouse'                       => 0;
-requires 'MouseX::SimpleConfig'        => 0;
-requires 'MouseX::Getopt'              => 0;
+requires 'Moose'                       => 0;
+requires 'MooseX::SimpleConfig'        => 0;
+requires 'MooseX::Getopt'              => 0;
 requires 'Try::Tiny'                   => 0;
 requires 'Test::More'                  => 0;
 requires 'JSON'                        => 2.0;

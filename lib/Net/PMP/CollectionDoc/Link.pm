@@ -1,5 +1,5 @@
 package Net::PMP::CollectionDoc::Link;
-use Mouse;
+use Moose;
 use Carp;
 use Data::Dump qw( dump );
 use URI::Template;

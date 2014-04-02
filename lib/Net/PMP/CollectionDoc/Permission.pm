@@ -1,5 +1,5 @@
 package Net::PMP::CollectionDoc::Permission;
-use Mouse;
+use Moose;
 use Carp;
 use Data::Dump qw( dump );
 use Net::PMP::TypeConstraints;
@@ -9,7 +9,7 @@ our $VERSION = '0.001';
 has 'href' => ( is => 'rw', isa => 'Net::PMP::Type::Href', required => 1, );
 has 'operation' => (
     is       => 'rw',
-    isa      => Mouse::Util::TypeConstraints::enum( [qw( read write )] ),
+    isa      => Moose::Util::TypeConstraints::enum( [qw( read write )] ),
     default  => 'read',
     required => 1,
 );

@@ -1,6 +1,6 @@
 package Net::PMP::TypeConstraints;
-use Mouse;
-use Mouse::Util::TypeConstraints;
+use Moose;
+use Moose::Util::TypeConstraints;
 use Data::Dump qw( dump );
 
 our $VERSION = '0.001';
@@ -82,7 +82,7 @@ subtype 'Net::PMP::Type::GUID' => as 'Str' => where {
     m/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
 } => message {"Value ($_) does not look like a valid guid."};
 
-no Mouse::Util::TypeConstraints;
+no Moose::Util::TypeConstraints;
 
 __PACKAGE__->meta->make_immutable();
 
@@ -97,7 +97,7 @@ Net::PMP::CollectionDoc::Link - link from a Net::PMP::CollectionDoc::Links objec
 =head1 SYNOPSIS
 
  package My::Class;
- use Mouse;
+ use Moose;
  use Net::PMP::Profile::TypeConstraints;
 
  # provide validation checking
@@ -108,7 +108,7 @@ Net::PMP::CollectionDoc::Link - link from a Net::PMP::CollectionDoc::Links objec
 =head1 DESCRIPTION
 
 Net::PMP::Profile::TypeConstraints defines validation constraints for Net::PMP classes.
-This is a utility class defining types with L<Mouse::Util::TypeConstraints>
+This is a utility class defining types with L<Moose::Util::TypeConstraints>
 in the C<Net::PMP::Type> namespace.
 
 =head1 AUTHOR

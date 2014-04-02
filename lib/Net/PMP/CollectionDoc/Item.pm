@@ -1,5 +1,5 @@
 package Net::PMP::CollectionDoc::Item;
-use Mouse;
+use Moose;
 use Carp;
 use Data::Dump qw( dump );
 extends 'Net::PMP::CollectionDoc';

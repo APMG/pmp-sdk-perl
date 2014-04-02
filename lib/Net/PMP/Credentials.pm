@@ -1,5 +1,5 @@
 package Net::PMP::Credentials;
-use Mouse;
+use Moose;
 use Carp;
 use Data::Dump qw( dump );
 

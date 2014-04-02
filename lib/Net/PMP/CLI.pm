@@ -1,7 +1,7 @@
 package Net::PMP::CLI;
-use Mouse;
-with 'MouseX::SimpleConfig';
-with 'MouseX::Getopt';
+use Moose;
+with 'MooseX::SimpleConfig';
+with 'MooseX::Getopt';
 
 use Net::PMP::Client;
 use JSON;
@@ -47,7 +47,7 @@ Net::PMP::CLI - command line application for Net::PMP::Client
 =head1 DESCRIPTION
 
 This class is used by the C<pmpc> command-line tool.
-It uses L<MouseX::SimpleConfig> and L<MouseX::Getopt> to allow
+It uses L<MooseX::SimpleConfig> and L<MooseX::Getopt> to allow
 for simple configuration file and option parsing.
 
 =head1 METHODS

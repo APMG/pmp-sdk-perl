@@ -57,9 +57,9 @@ This class is mostly a namespace-holder and documentation, with one convenience 
 Returns a new Net::PMP::Client object. 
 See L<Net::PMP::Client> new() method for I<args> details.
 Note that new_with_config() is the actual method called, as a convenience
-via L<MouseX::SimpleConfig>. You can define a config file in
+via L<MooseX::SimpleConfig>. You can define a config file in
 $ENV{HOME}/.pmp.yaml (default)  and it will be read automatically when
-instantiating a Client. See L<MouseX::SimpleConfig> and L<Net::PMP::CLI> for
+instantiating a Client. See L<MooseX::SimpleConfig> and L<Net::PMP::CLI> for
 examples.
 
 =head1 AUTHOR

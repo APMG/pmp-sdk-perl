@@ -1,5 +1,5 @@
 package Net::PMP::AuthToken;
-use Mouse;
+use Moose;
 use Carp;
 
 has 'access_token'     => ( is => 'rw', isa => 'Str', required => 1, );

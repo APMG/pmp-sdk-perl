@@ -1,5 +1,5 @@
 package Net::PMP::Schema;
-use Mouse;
+use Moose;
 use Carp;
 use Data::Dump qw( dump );
 

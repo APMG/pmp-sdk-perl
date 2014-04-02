@@ -1,6 +1,6 @@
 package Net::PMP::Client;
-use Mouse;
-with 'MouseX::SimpleConfig';
+use Moose;
+with 'MooseX::SimpleConfig';
 use Carp;
 use Data::Dump qw( dump );
 use LWP::UserAgent 6;    # SSL verification bug fixed in 6.03
