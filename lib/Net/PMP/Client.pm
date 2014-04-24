@@ -21,7 +21,7 @@ has 'host' => (
     is       => 'rw',
     isa      => 'Str',
     required => 1,
-    default  => 'https://api-sandbox.pmp.io/',
+    default => sub { $ENV{PMP_CLIENT_HOST} || 'https://api-sandbox.pmp.io/' },
 );
 has 'id'     => ( is => 'rw', isa => 'Str',  required => 1, );
 has 'secret' => ( is => 'rw', isa => 'Str',  required => 1, );
@@ -30,7 +30,7 @@ has 'ua' => ( is => 'rw', isa => 'LWP::UserAgent', builder => '_init_ua', );
 has 'pmp_content_type' => (
     is      => 'rw',
     isa     => 'Str',
-    default => 'application/vnd.collection.doc+json',
+    default => sub {'application/vnd.collection.doc+json'},
 );
 has 'last_response' => ( is => 'rw', isa => 'HTTP::Response', );
 
