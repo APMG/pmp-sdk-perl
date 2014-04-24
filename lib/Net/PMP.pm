@@ -84,7 +84,7 @@ You can also look for information at:
 
 =over 4
 
-=item IRC
+=item * IRC
 
 Join #pmp on L<http://freenode.net>.
 
