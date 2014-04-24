@@ -485,7 +485,7 @@ sub get {
 sub _set_home_doc_config {
     my $self = shift;
     $self->{_home_doc} ||= $self->get_doc();
-    if (!$self->{_home_doc}) {
+    if ( !$self->{_home_doc} ) {
         confess "Failed to GET home doc from " . $self->host;
     }
     my $edit_links = $self->{_home_doc}->get_links('edit');
@@ -692,6 +692,13 @@ sub search {
     my $tries = shift || 1;
     my $uri   = $self->{_home_doc}->query('urn:collectiondoc:query:docs')
         ->as_uri($opts);
+
+    # debugging option
+    if ( $ENV{PMP_DEBUG} and $ENV{PMP_APPEND_RANDOM_STRING} ) {
+        my $rand_guid = Net::PMP::CollectionDoc->create_guid();
+        $uri .= '&random=' . $rand_guid;
+    }
+
     return $self->get_doc( $uri, $tries );
 }
 
