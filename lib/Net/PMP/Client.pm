@@ -694,7 +694,7 @@ sub search {
         ->as_uri($opts);
 
     # debugging option
-    if ( $ENV{PMP_DEBUG} and $ENV{PMP_APPEND_RANDOM_STRING} ) {
+    if ( $ENV{PMP_CLIENT_DEBUG} and $ENV{PMP_APPEND_RANDOM_STRING} ) {
         my $rand_guid = Net::PMP::CollectionDoc->create_guid();
         $uri .= '&random=' . $rand_guid;
     }
