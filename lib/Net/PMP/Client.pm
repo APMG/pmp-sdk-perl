@@ -34,6 +34,9 @@ has 'pmp_content_type' => (
 );
 has 'last_response' => ( is => 'rw', isa => 'HTTP::Response', );
 
+# TODO add strict mode where schema validation is enforced client-side on save()
+#has 'strict' => ( is => 'rw', isa => 'Bool', default => sub {0} );
+
 # some constructor-time setup
 sub BUILD {
     my $self = shift;
@@ -512,7 +515,10 @@ Write I<doc_object> to the server. I<doc_object> should be an instance
 of L<Net::PMP::CollectionDoc>.
 
 Returns the JSON response from the server on success, croaks on failure.
-Normally you should use save() instead of put() directly.
+
+Normally you should use save() instead of put() directly, since save()
+optionally validates the I<doc_object> before calling put() and makes
+sure there is a B<guid> and B<href> defined.
 
 =cut
 
@@ -725,6 +731,12 @@ sub save {
     if ( !$doc->get_guid ) {
         $doc->set_guid();
     }
+
+    # similar for href
+    if ( !$doc->href ) {
+        $doc->href( $self->uri_for_doc( $doc->get_guid ) );
+    }
+
     my $saved = $self->put($doc);
     $self->debug and warn dump $saved;
 

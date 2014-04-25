@@ -124,14 +124,11 @@ SKIP: {
         }
     }
 
-    my $sample_guid = '7c0b0cc2-7197-44e7-b2b8-32ea414bb5ec';
     ok( my $sample_doc = Net::PMP::CollectionDoc->new(
-            href       => $client->uri_for_doc($sample_guid),
             version    => '1.0',
             attributes => {
                 tags  => [qw( pmp_sdk_perl_testcontent )],
                 title => 'i am a test document',
-                guid  => $sample_guid,
             },
             links => {
                 profile => [ { href => $client->host . '/profiles/story' } ]

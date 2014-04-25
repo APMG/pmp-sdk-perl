@@ -10,13 +10,17 @@ use JSON;
 
 our $VERSION = '0.001';
 
+# the 'required' flag on these attributes should match
+# the core CollectionDoc schema:
+# https://api.pmp.io/schemas/core
+
 has 'href' => (
-    is       => 'ro',
+    is       => 'rw',
     isa      => 'Net::PMP::Type::Href',
-    required => 1,
+    required => 0,
     coerce   => 1,
 );
-has 'links'      => ( is => 'ro', isa => 'HashRef', required => 1, );
+has 'links'      => ( is => 'ro', isa => 'HashRef', required => 0, );
 has 'attributes' => ( is => 'ro', isa => 'HashRef', required => 0, );
 has 'version' =>
     ( is => 'ro', isa => 'Str', required => 1, default => sub {'1.0'}, );
