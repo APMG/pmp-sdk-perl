@@ -13,6 +13,7 @@ binmode Test::More->builder->failure_output, ":utf8";
 
 SKIP: {
     if ( !$ENV{PMP_CLIENT_ID} or !$ENV{PMP_CLIENT_SECRET} ) {
+        diag "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API";
         skip "set PMP_CLIENT_ID and PMP_CLIENT_SECRET to test API", 57;
     }
 
@@ -123,13 +124,14 @@ SKIP: {
         }
     }
 
+    my $sample_guid = '7c0b0cc2-7197-44e7-b2b8-32ea414bb5ec';
     ok( my $sample_doc = Net::PMP::CollectionDoc->new(
+            href       => $client->uri_for_doc($sample_guid),
             version    => '1.0',
             attributes => {
                 tags  => [qw( pmp_sdk_perl_testcontent )],
                 title => 'i am a test document',
-
-                #guid  => '5890510b-f237-3714-9f51-36ceafd8bbb7',
+                guid  => $sample_guid,
             },
             links => {
                 profile => [ { href => $client->host . '/profiles/story' } ]

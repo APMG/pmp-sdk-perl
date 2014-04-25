@@ -2,6 +2,7 @@ package Net::PMP::CollectionDoc;
 use Moose;
 use Carp;
 use Data::Dump qw( dump );
+use Net::PMP::TypeConstraints;
 use Net::PMP::CollectionDoc::Links;
 use Net::PMP::CollectionDoc::Items;
 use UUID::Tiny ':std';
@@ -9,11 +10,16 @@ use JSON;
 
 our $VERSION = '0.001';
 
-has 'href'       => ( is => 'ro', isa => 'Str', );
+has 'href' => (
+    is       => 'ro',
+    isa      => 'Net::PMP::Type::Href',
+    required => 1,
+    coerce   => 1,
+);
 has 'links'      => ( is => 'ro', isa => 'HashRef', required => 1, );
 has 'attributes' => ( is => 'ro', isa => 'HashRef', required => 0, );
 has 'version' =>
-    ( is => 'ro', isa => 'Str', required => 1, default => '1.0', );
+    ( is => 'ro', isa => 'Str', required => 1, default => sub {'1.0'}, );
 has 'items' => ( is => 'ro', isa => 'ArrayRef', required => 0, );
 
 =head1 NAME
@@ -32,13 +38,14 @@ Net::PMP::CollectionDoc represents the PMP API media type L<https://github.com/p
 
 =head1 METHODS
 
-=head2 links
+=head2 href
 
-=head2 attributes
-
-=head2 version
+The unique identifier. See L<http://cdoc.io/spec.html#guid-vs-href>.
 
 =head2 items
+
+Returns arrayref of child items. These are returned as a convenience from the server
+and are not a native part of the CollectionDoc.
 
 =head2 get_links( I<type> )
 
