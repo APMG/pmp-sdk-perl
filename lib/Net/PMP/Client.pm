@@ -163,7 +163,7 @@ sub get_home_doc {
     return $self->{_home_doc};
 }
 
-=head2 get_token([I<refresh>])
+=head2 get_token([I<refresh>],[I<warning_ttl>])
 
 Returns a Net::PMP::AuthToken object. The optional I<refresh> boolean indicates
 that the Client should ignore any cached token and fetch a fresh one.
@@ -171,14 +171,21 @@ that the Client should ignore any cached token and fetch a fresh one.
 If get_home_doc() is undefined (i.e., no initial access has been attempted),
 then this method will return undef.
 
+If the token will expire in less than I<warning_ttl> seconds, the client will sleep()
+that long and then refresh itself. The default is 10 seconds.
+
 =cut
 
 sub get_token {
-    my $self = shift;
-    my $refresh = shift || 0;
+    my $self        = shift;
+    my $refresh     = shift || 0;
+    my $warning_ttl = shift || 10;
 
     # use cache?
-    if ( !$refresh and $self->{_token} ) {
+    if (   !$refresh
+        and $self->{_token}
+        and $self->{_token}->expires_in() > $warning_ttl )
+    {
         my $tok = $self->{_token};
         if ( $self->{_last_token_ts} ) {
             $tok->expires_in(
@@ -186,6 +193,15 @@ sub get_token {
         }
         $self->{_last_token_ts} = time();
         return $tok;
+    }
+
+    if ( $self->{_token} and $self->{_token}->expires_in() <= $warning_ttl ) {
+        if ( $self->debug ) {
+            warn sprintf(
+                "Token will expire in %d seconds. Sleeping for that long...\n",
+                $self->{_token}->expires_in() );
+        }
+        sleep( $self->{_token}->expires_in() + 1 );   # let server side expire
     }
 
     # fetch new token
