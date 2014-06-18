@@ -4,7 +4,7 @@ use Carp;
 use Data::Dump qw( dump );
 use Net::PMP::TypeConstraints;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 has 'href' => ( is => 'rw', isa => 'Net::PMP::Type::Href', required => 1, );
 has 'operation' => (

@@ -5,7 +5,7 @@ use Data::Dump qw( dump );
 use Net::PMP::CollectionDoc::Link;
 use Net::PMP::CollectionDoc::Permission;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 has 'links' => (
     is       => 'rw',

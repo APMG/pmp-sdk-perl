@@ -8,7 +8,7 @@ use Net::PMP::CollectionDoc::Items;
 use UUID::Tiny ':std';
 use JSON;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 # the 'required' flag on these attributes should match
 # the core CollectionDoc schema:

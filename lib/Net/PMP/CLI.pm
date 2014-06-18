@@ -7,7 +7,7 @@ use Net::PMP::Client;
 use JSON;
 use Data::Dump qw( dump );
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
 
@@ -134,7 +134,7 @@ sub _list_items {
         if ( $item->has_items ) {
             my $iitems = $item->get_items;
             while ( my $iitem = $iitems->next ) {
-                my $iprofile = $item->get_profile;
+                my $iprofile = $iitem->get_profile;
                 $iprofile =~ s,^.+/,,;
                 printf( " contains: %s [%s] [%s]\n",
                     $iitem->get_title, $iitem->get_uri, $iprofile );

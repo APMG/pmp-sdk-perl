@@ -2,3 +2,6 @@ Revision history for Net-PMP-Client
 
 0.001   06 June 2014
  - first release
+
+0.002   xxx
+ - fix CLI child item profile display bug
