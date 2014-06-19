@@ -354,9 +354,9 @@ sub as_hash {
         $hash{href} ||= $self->get_uri;
     }
 
-    # TODO add any read-only links that come from the server
+    # blacklist read-only links that come from the server
     # in order to make round-trips safe
-    my %ro_links = map { $_ => 1 } qw( );
+    my %ro_links = map { $_ => 1 } qw( query edit auth navigation creator );
     for my $link ( keys %{ $self->links } ) {
         next if exists $hash{links}->{$link};
         next if exists $ro_links{$link};

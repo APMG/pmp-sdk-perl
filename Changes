@@ -6,3 +6,4 @@ Revision history for Net-PMP-Client
 0.002   xxx
  - fix CLI child item profile display bug
  - catch/re-throw json encoding errors to generate full stack trace
+ - round-trip GET/PUT of a single object now safe
