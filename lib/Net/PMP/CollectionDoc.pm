@@ -7,6 +7,7 @@ use Net::PMP::CollectionDoc::Links;
 use Net::PMP::CollectionDoc::Items;
 use UUID::Tiny ':std';
 use JSON;
+use Try::Tiny;
 
 our $VERSION = '0.002';
 
@@ -397,7 +398,14 @@ Returns the CollectionDoc as a JSON-encoded string suitable for saving.
 
 sub as_json {
     my $self = shift;
-    return encode_json( $self->as_hash );
+    my $json = try {
+        encode_json( $self->as_hash );
+    }
+    catch {
+        confess $_;    # re-throw with full stack trace.
+        return '';     # we can't get here can we?
+    };
+    return $json;
 }
 
 =head2 add_item( I<child> )
