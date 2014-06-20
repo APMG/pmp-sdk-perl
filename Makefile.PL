@@ -31,5 +31,5 @@ install_script 'bin/pmpc';
 WriteMakefile(
     PL_FILES => {},
     dist     => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES => '' },
+    clean => { FILES => 'Net-PMP-*tar.gz' },
 );
