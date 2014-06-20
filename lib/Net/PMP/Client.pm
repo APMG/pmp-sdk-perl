@@ -550,6 +550,7 @@ sub put {
     my $body    = $doc->as_json();
     if ( $self->debug ) {
         warn "PUT $uri\n" . dump( $doc->as_hash() ) . "\n";
+        warn "JSON: $body\n";
     }
     $request->header( 'Accept'       => 'application/json' );
     $request->header( 'Content-Type' => $self->pmp_content_type );
