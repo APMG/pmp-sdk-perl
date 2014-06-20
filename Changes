@@ -3,7 +3,7 @@ Revision history for Net-PMP-Client
 0.001   06 June 2014
  - first release
 
-0.002   xxx
+0.002   20 June 2014
  - fix CLI child item profile display bug
  - catch/re-throw json encoding errors to generate full stack trace
  - round-trip GET/PUT of a single object now safe
