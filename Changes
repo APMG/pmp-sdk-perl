@@ -7,3 +7,5 @@ Revision history for Net-PMP-Client
  - fix CLI child item profile display bug
  - catch/re-throw json encoding errors to generate full stack trace
  - round-trip GET/PUT of a single object now safe
+ - make sure get_self_uri check for defined links before treating as a hashref
+

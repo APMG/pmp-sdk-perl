@@ -234,7 +234,7 @@ Returns canonical URI for Doc per 'self' link.
 
 sub get_self_uri {
     my $self = shift;
-    if ( exists $self->links->{self} ) {
+    if ( $self->links and exists $self->links->{self} ) {
         return $self->links->{self}->[0]->{href};
     }
     return '';
