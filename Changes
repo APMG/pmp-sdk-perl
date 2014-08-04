@@ -1,5 +1,9 @@
 Revision history for Net-PMP-Client
 
+0.003 xxx
+ - fix CLI pod for get() action
+ - use 'auth' links in root doc for Client->get_credentials_uri()
+
 0.002 20 June 2014
  - fix CLI child item profile display bug
  - catch/re-throw json encoding errors to generate full stack trace

@@ -272,13 +272,12 @@ Returns the URI for the Credentials API.
 =cut
 
 sub get_credentials_uri {
-    my $self = shift;
-    if ( $self->host =~ m/api-sandbox/ ) {
-        return URI->new('https://publish-sandbox.pmp.io/auth/credentials');
-    }
-    else {
-        return URI->new('https://publish.pmp.io/auth/credentials');
-    }
+    my $self       = shift;
+    my $auth_links = $self->get_home_doc()->get_links('auth');
+    my $uri
+        = $auth_links->rels('urn:collectiondoc:form:createcredentials')->[0]
+        ->href;
+    return URI->new($uri);
 }
 
 =head2 create_credentials( I<params>  )
