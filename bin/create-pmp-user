@@ -31,10 +31,10 @@ my $client = Net::PMP::Client->new(
 my $user = Net::PMP::CollectionDoc->new(
     version    => $client->get_doc->version,
     attributes => {
-        tags  => [qw( created_by_net_pmp_perl )],
-        title => $title,
-        email => $email,
-        auth  => {
+        tags   => [qw( created_by_net_pmp_perl )],
+        title  => $title,
+        emails => [ { email => $email, type => 'primary' } ],
+        auth   => {
             user     => $un,
             password => $pw,
         },
