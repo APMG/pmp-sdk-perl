@@ -67,7 +67,7 @@ reference to an integer, so that passing to encode_json() will create a proper J
 
 =head1 AUTHOR
 
-Peter Karman, C<< <pkarman at cpan.org> >>
+Peter Karman, C<< <karman at cpan.org> >>
 
 =head1 BUGS
 
