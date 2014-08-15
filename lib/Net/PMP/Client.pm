@@ -14,7 +14,7 @@ use Net::PMP::Credentials;
 use URI;
 use Try::Tiny;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
 has 'host' => (

@@ -9,7 +9,7 @@ use UUID::Tiny ':std';
 use JSON;
 use Try::Tiny;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 # the 'required' flag on these attributes should match
 # the core CollectionDoc schema:

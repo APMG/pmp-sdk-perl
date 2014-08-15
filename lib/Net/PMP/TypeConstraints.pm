@@ -3,7 +3,7 @@ use Moose;
 use Moose::Util::TypeConstraints;
 use Data::Dump qw( dump );
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 # The Net::PMP::Type::* prefix is used for all our type constraints
 # to avoid stepping on anyone's toes
