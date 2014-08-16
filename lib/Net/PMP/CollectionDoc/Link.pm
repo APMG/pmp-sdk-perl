@@ -5,7 +5,7 @@ use Data::Dump qw( dump );
 use URI::Template;
 use Net::PMP::TypeConstraints;
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 has 'hints'      => ( is => 'rw', isa => 'HashRef' );
 has 'template'   => ( is => 'rw', isa => 'Str' );

@@ -7,7 +7,7 @@ use Net::PMP::Client;
 use JSON;
 use Data::Dump qw( dump );
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 has '+configfile' => ( default => $ENV{HOME} . '/.pmp.yaml' );
 
@@ -345,7 +345,8 @@ sub get {
             $self->path, $client->last_response->status_line );
     }
     else {
-        dump $doc;
+        #dump $doc;
+        print $doc->as_json;
     }
 }
 

@@ -1,5 +1,8 @@
 Revision history for Net-PMP-Client
 
+0.004 xxx
+ - CLI->get() prints raw JSON, not a Perl dump
+
 0.003 14 Aug 2014
  - fix CLI pod for get() action
  - use 'auth' links in root doc for Client->get_credentials_uri()
