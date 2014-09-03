@@ -1,6 +1,6 @@
 Revision history for Net-PMP-Client
 
-0.004 xxx
+0.004 03 Sept 2014
  - CLI->get() prints raw JSON, not a Perl dump
  - CLI respects PMP_CLIENT_CONFIG env var in addition to --configfile param
 
